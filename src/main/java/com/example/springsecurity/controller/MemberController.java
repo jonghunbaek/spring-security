@@ -1,11 +1,11 @@
 package com.example.springsecurity.controller;
 
-import com.example.springsecurity.dto.SignIn;
-import com.example.springsecurity.dto.SignUp;
+import com.example.springsecurity.dto.SignInRequest;
+import com.example.springsecurity.dto.SignUpRequest;
 import com.example.springsecurity.entity.Role;
-import com.example.springsecurity.entity.User;
+import com.example.springsecurity.entity.Member;
 import com.example.springsecurity.repo.RoleRepository;
-import com.example.springsecurity.repo.UserRepository;
+import com.example.springsecurity.repo.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,34 +24,34 @@ import java.util.Set;
 @RequestMapping("/security")
 @RequiredArgsConstructor
 @RestController
-public class UserController {
+public class MemberController {
 
     private final AuthenticationManager authenticationManager;
-    private final UserRepository userRepository;
+    private final MemberRepository memberRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
     @PostMapping("/sign-in")
-    public ResponseEntity<String> authenticateUser(@RequestBody SignIn signIn) {
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(signIn.getUsername(), signIn.getPassword()));
+    public ResponseEntity<String> authenticateUser(@RequestBody SignInRequest signInRequest) {
+        Authentication authenticationRequest = UsernamePasswordAuthenticationToken.unauthenticated(signInRequest.getUsername(), signInRequest.getPassword());
+        Authentication authenticateResponse = authenticationManager.authenticate(authenticationRequest);
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
+        SecurityContextHolder.getContext().setAuthentication(authenticateResponse);
         return new ResponseEntity<>("로그인 성공", HttpStatus.OK);
     }
 
     @PostMapping("/sign-up")
-    public ResponseEntity<String> joinMember(@RequestBody SignUp signUp)  {
-        User user = User.builder()
-            .name(signUp.getName())
-            .userName(signUp.getUsername())
-            .email(signUp.getEmail())
-            .password(passwordEncoder.encode(signUp.getPassword()))
+    public ResponseEntity<String> joinMember(@RequestBody SignUpRequest signUpRequest)  {
+        Member member = Member.builder()
+            .name(signUpRequest.getName())
+            .userName(signUpRequest.getUsername())
+            .email(signUpRequest.getEmail())
+            .password(passwordEncoder.encode(signUpRequest.getPassword()))
             .build();
 
         Role role = roleRepository.findByName("ROLE_ADMIN").get();
-        user.setRoles(Set.of(role));
-        userRepository.save(user);
+        member.setRoles(Set.of(role));
+        memberRepository.save(member);
 
         return new ResponseEntity<>("회원 가입 성공", HttpStatus.OK);
     }

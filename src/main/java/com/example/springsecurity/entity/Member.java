@@ -12,7 +12,7 @@ import java.util.Set;
 @Getter @Setter
 @Table(name = "users")
 @Entity
-public class User {
+public class Member {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -32,7 +32,7 @@ public class User {
     private Set<Role> roles;
 
     @Builder
-    private User(String name, String userName, String email, String password, Set<Role> roles) {
+    private Member(String name, String userName, String email, String password, Set<Role> roles) {
         this.name = name;
         this.userName = userName;
         this.email = email;
