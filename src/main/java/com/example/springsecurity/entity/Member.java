@@ -6,8 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Set;
-
 @NoArgsConstructor
 @Getter @Setter
 @Table(name = "users")
@@ -20,23 +18,15 @@ public class Member {
     private String name;
 
     @Column(nullable = false, unique = true)
-    private String userName;
-
-    @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false)
     private String password;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    private Set<Role> roles;
-
     @Builder
-    private Member(String name, String userName, String email, String password, Set<Role> roles) {
+    private Member(String name, String email, String password) {
         this.name = name;
-        this.userName = userName;
         this.email = email;
         this.password = password;
-        this.roles = roles;
     }
 }
