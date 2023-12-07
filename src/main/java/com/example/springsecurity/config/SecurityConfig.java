@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -23,9 +24,9 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
             .cors(AbstractHttpConfigurer::disable)
             .formLogin(AbstractHttpConfigurer::disable)
-            .httpBasic(withDefaults())
-            .authorizeHttpRequests(authorize -> authorize.requestMatchers("/","/security/**", "/h2-console/**").permitAll()
+            .authorizeHttpRequests(authorize -> authorize.requestMatchers("/home","/security/**", "/h2-console/**").permitAll()
                 .anyRequest().authenticated())
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .logout(withDefaults());
 
         http.headers(headersConfigurer -> headersConfigurer.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
