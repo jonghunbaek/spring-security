@@ -3,7 +3,7 @@ package com.example.springsecurity.config.security;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.sql.Date;
 import java.sql.Timestamp;
@@ -11,7 +11,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
-@Service
+@Component
 public class TokenProvider {
 
     private final String secretKey;
@@ -34,5 +34,9 @@ public class TokenProvider {
             .setIssuedAt(Timestamp.valueOf(LocalDateTime.now()))
             .setExpiration(Date.from(Instant.now().plus(expiration, ChronoUnit.HOURS)))
             .compact();
+    }
+
+    public String validateToken(String token) {
+        return null;
     }
 }
