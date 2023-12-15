@@ -1,6 +1,5 @@
 package com.example.springsecurity.jwt;
 
-import com.example.springsecurity.entity.Member;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,12 +25,13 @@ import java.util.Optional;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    public static final String TOKEN_DELIMITER = ":";
     private final TokenProvider tokenProvider;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String token = parseBearerToken(request);
-        User user = parseUserSpecification(token);
+        User user = parseToUser(token);
         AbstractAuthenticationToken authenticated = UsernamePasswordAuthenticationToken.authenticated(user, token, user.getAuthorities());
         authenticated.setDetails(new WebAuthenticationDetails(request));
         SecurityContextHolder.getContext().setAuthentication(authenticated);
@@ -46,12 +46,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             .orElse(null);
     }
 
-    private User parseUserSpecification(String token) {
+    private User parseToUser(String token) {
         String[] split = Optional.ofNullable(token)
             .filter(subject -> subject.length() >= 10)
             .map(tokenProvider::validateToken)
-            .orElse("anonymous:anonymous")
-            .split(":");
+            .orElse("null:null")
+            .split(TOKEN_DELIMITER);
 
         return new User(split[0], "", List.of(new SimpleGrantedAuthority(split[1])));
     }

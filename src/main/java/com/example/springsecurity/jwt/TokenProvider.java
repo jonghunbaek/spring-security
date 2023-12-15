@@ -28,10 +28,10 @@ public class TokenProvider {
         this.issuer = issuer;
     }
 
-    public String createToken(String userSpecification) {
+    public String createToken(String email) {
         return Jwts.builder()
             .signWith(secretKey, Jwts.SIG.HS512)
-            .subject(userSpecification)
+            .subject(email)
             .issuer(issuer)
             .issuedAt(Timestamp.valueOf(LocalDateTime.now()))
             .expiration(Date.from(Instant.now().plus(expiration, ChronoUnit.HOURS)))
