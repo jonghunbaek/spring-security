@@ -1,6 +1,6 @@
 package com.example.springsecurity.service;
 
-import com.example.springsecurity.config.security.TokenProvider;
+import com.example.springsecurity.jwt.TokenProvider;
 import com.example.springsecurity.dto.SignInRequest;
 import com.example.springsecurity.dto.SignUpRequest;
 import com.example.springsecurity.entity.Member;
