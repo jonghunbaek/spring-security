@@ -7,10 +7,10 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
-@Service
+@Component
 public class CustomUserDetailService implements UserDetailsService {
 
     private final MemberRepository memberRepository;
@@ -18,7 +18,7 @@ public class CustomUserDetailService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         Member member = memberRepository.findByEmail(email)
-            .orElseThrow(() -> new IllegalArgumentException("이름이 일치하는 사용자가 없습니다."));
+            .orElseThrow(() -> new IllegalArgumentException("이름이 일치하는 사용자가 없습니다. email :: " + email));
 
         return User.builder()
             .username(email)

@@ -1,58 +1,72 @@
 package com.example.springsecurity.jwt;
 
+import com.example.springsecurity.service.CustomUserDetailService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.annotation.Order;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.web.authentication.WebAuthenticationDetails;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 
-@Order(0)
+@Slf4j
 @RequiredArgsConstructor
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    public static final String TOKEN_DELIMITER = ":";
+    public static final String AUTH_TYPE = "Bearer ";
+
     private final TokenProvider tokenProvider;
+    private final CustomUserDetailService userDetailService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String token = parseBearerToken(request);
-        User user = parseToUser(token);
-        AbstractAuthenticationToken authenticated = UsernamePasswordAuthenticationToken.authenticated(user, token, user.getAuthorities());
-        authenticated.setDetails(new WebAuthenticationDetails(request));
-        SecurityContextHolder.getContext().setAuthentication(authenticated);
+        Optional<String> tokenWithBearer = Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION));
+
+        if (tokenWithBearer.isPresent()) {
+            log.info("bearer token :: {}", tokenWithBearer);
+            String token = extractToken(tokenWithBearer.get());
+            Authentication authentication = getAuthentication(token);
+            log.info("인증 됐나?");
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+        }
 
         filterChain.doFilter(request, response);
     }
 
-    private String parseBearerToken(HttpServletRequest request) {
-        return Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION))
-            .filter(token -> token.substring(0, 7).equalsIgnoreCase("Bearer "))
-            .map(token -> token.substring(7))
-            .orElse(null);
+    private String extractToken(String tokenWithBearer) {
+        String authType = tokenWithBearer.substring(0, AUTH_TYPE.length());
+        validateAuthType(authType);
+
+        return tokenWithBearer.substring(AUTH_TYPE.length());
     }
 
-    private User parseToUser(String token) {
-        String[] split = Optional.ofNullable(token)
-            .filter(subject -> subject.length() >= 10)
-            .map(tokenProvider::validateToken)
-            .orElse("null:null")
-            .split(TOKEN_DELIMITER);
+    private void validateAuthType(String authType) {
+        if (!authType.equalsIgnoreCase(AUTH_TYPE)) {
+            throw new IllegalArgumentException("AUTH_TYPE이 일치하지 않습니다. AUTH_TYPE :: " + authType);
+        }
+    }
 
-        return new User(split[0], "", List.of(new SimpleGrantedAuthority(split[1])));
+    private Authentication getAuthentication(String token) {
+        String subject = parseToSubject(token);
+        UserDetails userDetails = userDetailService.loadUserByUsername(subject);
+
+        return new UsernamePasswordAuthenticationToken(userDetails.getUsername(), "");
+    }
+
+    private String parseToSubject(String token) {
+        return Optional.ofNullable(token)
+            .filter(t -> t.length() >= 10)
+            .map(tokenProvider::convertAfterValidate)
+            .orElse(null);
     }
 }

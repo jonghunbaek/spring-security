@@ -1,7 +1,6 @@
 package com.example.springsecurity.jwt;
 
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -38,7 +37,7 @@ public class TokenProvider {
             .compact();
     }
 
-    public String validateToken(String token) {
+    public String convertAfterValidate(String token) {
         return Jwts.parser()
             .verifyWith(secretKey)
             .build()
