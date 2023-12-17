@@ -36,8 +36,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             log.info("bearer token :: {}", tokenWithBearer);
             String token = extractToken(tokenWithBearer.get());
             Authentication authentication = getAuthentication(token);
-            log.info("인증 됐나?");
             SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            Authentication authentication1 = SecurityContextHolder.getContext().getAuthentication();
+            log.info("is authenticated? :: {}", authentication1.isAuthenticated());
+            log.info("email :: {}", authentication1.getPrincipal().toString());
         }
 
         filterChain.doFilter(request, response);
@@ -60,7 +63,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String subject = parseToSubject(token);
         UserDetails userDetails = userDetailService.loadUserByUsername(subject);
 
-        return new UsernamePasswordAuthenticationToken(userDetails.getUsername(), "");
+        return new UsernamePasswordAuthenticationToken(userDetails.getUsername(), "", userDetails.getAuthorities());
     }
 
     private String parseToSubject(String token) {
