@@ -1,5 +1,6 @@
 package com.example.springsecurity.service;
 
+import com.example.springsecurity.entity.Role;
 import com.example.springsecurity.jwt.TokenProvider;
 import com.example.springsecurity.dto.SignInRequest;
 import com.example.springsecurity.dto.SignUpRequest;
@@ -27,6 +28,7 @@ public class MemberService {
             .name(signUpRequest.getName())
             .email(signUpRequest.getEmail())
             .password(passwordEncoder.encode(signUpRequest.getPassword()))
+            .role(Role.valueOf(signUpRequest.getRole()))
             .build();
 
         memberRepository.save(member);

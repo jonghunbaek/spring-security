@@ -15,4 +15,14 @@ public class HomeController {
     public String shop() {
         return "디스 이즈 어 샵";
     }
+
+    @RequestMapping("/role/user")
+    public String role() {
+        return "user인증 완료";
+    }
+
+    @RequestMapping("/role/admin")
+    public String roleAdmin() {
+        return "admin인증 완료";
+    }
 }

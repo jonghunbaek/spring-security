@@ -18,15 +18,15 @@ public class MemberController {
 
     private final MemberService memberService;
 
-    @PostMapping("/sign-in")
-    public String authenticateUser(@RequestBody SignInRequest signInRequest) {
-        return memberService.signIn(signInRequest);
-    }
-
     @PostMapping("/sign-up")
     public ResponseEntity<String> joinMember(@RequestBody SignUpRequest signUpRequest)  {
         memberService.signUp(signUpRequest);
 
         return new ResponseEntity<>("회원 가입 성공", HttpStatus.OK);
+    }
+
+    @PostMapping("/sign-in")
+    public String authenticateUser(@RequestBody SignInRequest signInRequest) {
+        return memberService.signIn(signInRequest);
     }
 }

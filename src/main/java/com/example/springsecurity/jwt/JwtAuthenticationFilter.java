@@ -33,14 +33,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         Optional<String> tokenWithBearer = Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION));
 
         if (tokenWithBearer.isPresent()) {
-            log.info("bearer token :: {}", tokenWithBearer);
             String token = extractToken(tokenWithBearer.get());
             Authentication authentication = getAuthentication(token);
             SecurityContextHolder.getContext().setAuthentication(authentication);
-
-            Authentication authentication1 = SecurityContextHolder.getContext().getAuthentication();
-            log.info("is authenticated? :: {}", authentication1.isAuthenticated());
-            log.info("email :: {}", authentication1.getPrincipal().toString());
         }
 
         filterChain.doFilter(request, response);
