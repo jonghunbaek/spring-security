@@ -21,6 +21,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 
+    public static final String[] PERMIT_LIST = {"/home", "/security/**", "/h2-console/**"};
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
@@ -29,7 +30,7 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .cors(AbstractHttpConfigurer::disable)
             .formLogin(AbstractHttpConfigurer::disable)
-            .authorizeHttpRequests(authorize -> authorize.requestMatchers("/home","/security/**", "/h2-console/**").permitAll()
+            .authorizeHttpRequests(authorize -> authorize.requestMatchers(PERMIT_LIST).permitAll()
                 .requestMatchers("role/user").hasRole("USER")
                 .requestMatchers("role/admin").hasRole("ADMIN")
                 .anyRequest().authenticated())

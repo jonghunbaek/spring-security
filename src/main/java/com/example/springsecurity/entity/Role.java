@@ -1,6 +1,8 @@
 package com.example.springsecurity.entity;
 
-public enum Role {
+import lombok.Getter;
 
-    USER, ADMIN
+@Getter
+public enum Role {
+    ROLE_USER, ROLE_ADMIN
 }
