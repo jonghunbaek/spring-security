@@ -1,0 +1,2 @@
+- Spring Security Authentication Process : https://medium.com/geekculture/spring-security-authentication-process-authentication-flow-behind-the-scenes-d56da63f04fa
+- 권한을 부여할 때는 ROLE_~와 같은 네이밍을 해주고, 설정에선 ROLE_ 제외하고 입력해줘야 한다. 
