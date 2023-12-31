@@ -1,6 +1,11 @@
 package com.example.springsecurity.exception;
 
-public class ExceptionResponse {
+import lombok.Getter;
+
+import java.io.Serializable;
+
+@Getter
+public class ExceptionResponse implements Serializable {
 
     private String message;
 
