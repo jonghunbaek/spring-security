@@ -13,6 +13,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import static com.example.springsecurity.entity.Role.*;
+
 @RequiredArgsConstructor
 @Service
 public class MemberService {
@@ -28,7 +30,7 @@ public class MemberService {
             .name(signUpRequest.getName())
             .email(signUpRequest.getEmail())
             .password(passwordEncoder.encode(signUpRequest.getPassword()))
-            .role(Role.valueOf(signUpRequest.getRole()))
+            .role(valueOf(signUpRequest.getRole()))
             .build();
 
         memberRepository.save(member);
