@@ -1,5 +1,6 @@
 package com.example.springsecurity.service;
 
+import com.example.springsecurity.dto.SignInResponse;
 import com.example.springsecurity.jwt.TokenProvider;
 import com.example.springsecurity.dto.SignInRequest;
 import com.example.springsecurity.dto.SignUpRequest;
@@ -35,10 +36,14 @@ public class MemberService {
         memberRepository.save(member);
     }
 
-    public String signIn(SignInRequest signInRequest) {
+    // 추후 UserDetailsService를 사용하지 않는 경우도 작성해보자.
+    public SignInResponse signIn(SignInRequest signInRequest) {
         Authentication authenticationRequest = UsernamePasswordAuthenticationToken.unauthenticated(signInRequest.getEmail(), signInRequest.getPassword());
         authenticationManager.authenticate(authenticationRequest);
 
-        return tokenProvider.createAccessToken(signInRequest.getEmail());
+        return SignInResponse.of(
+                tokenProvider.createAccessToken(signInRequest.getEmail()),
+                tokenProvider.createRefreshToken()
+        );
     }
 }

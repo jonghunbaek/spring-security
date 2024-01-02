@@ -1,6 +1,7 @@
 package com.example.springsecurity.controller;
 
 import com.example.springsecurity.dto.SignInRequest;
+import com.example.springsecurity.dto.SignInResponse;
 import com.example.springsecurity.dto.SignUpRequest;
 import com.example.springsecurity.service.MemberService;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +27,7 @@ public class MemberController {
     }
 
     @PostMapping("/sign-in")
-    public String authenticateUser(@RequestBody SignInRequest signInRequest) {
+    public SignInResponse authenticateUser(@RequestBody SignInRequest signInRequest) {
         return memberService.signIn(signInRequest);
     }
 }
