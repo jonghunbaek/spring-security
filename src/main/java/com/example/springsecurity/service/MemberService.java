@@ -1,6 +1,5 @@
 package com.example.springsecurity.service;
 
-import com.example.springsecurity.entity.Role;
 import com.example.springsecurity.jwt.TokenProvider;
 import com.example.springsecurity.dto.SignInRequest;
 import com.example.springsecurity.dto.SignUpRequest;
@@ -40,6 +39,6 @@ public class MemberService {
         Authentication authenticationRequest = UsernamePasswordAuthenticationToken.unauthenticated(signInRequest.getEmail(), signInRequest.getPassword());
         authenticationManager.authenticate(authenticationRequest);
 
-        return tokenProvider.createToken(signInRequest.getEmail());
+        return tokenProvider.createAccessToken(signInRequest.getEmail());
     }
 }

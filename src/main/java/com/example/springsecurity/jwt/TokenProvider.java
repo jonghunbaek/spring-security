@@ -15,31 +15,46 @@ import java.time.temporal.ChronoUnit;
 @Component
 public class TokenProvider {
 
-    private final long expiration;
+    private final long accessExpiration;
+    private final long refreshExpiration;
     private final String issuer;
-    private final SecretKey secretKey;
+    private final SecretKey accessSecretKey;
+    private final SecretKey refreshSecretKey;
 
-    public TokenProvider(@Value("${secret-key}") String secretKey,
-                         @Value("${expiration-hours}") long expiration,
+    public TokenProvider(@Value("${access-secret-key}") String accessSecretKey,
+                         @Value("${refresh-secret-key") String refreshSecretKey,
+                         @Value("${access-expiration-hours}") long accessExpiration,
+                         @Value("${refresh-expiration-hours}") long refreshExpiration,
                          @Value("${issuer}") String issuer) {
-        this.secretKey = Keys.hmacShaKeyFor(secretKey.getBytes());
-        this.expiration = expiration;
+        this.accessSecretKey = Keys.hmacShaKeyFor(accessSecretKey.getBytes());
+        this.refreshSecretKey = Keys.hmacShaKeyFor(refreshSecretKey.getBytes());
+        this.accessExpiration = accessExpiration;
+        this.refreshExpiration = refreshExpiration;
         this.issuer = issuer;
     }
 
-    public String createToken(String email) {
+    public String createAccessToken(String email) {
         return Jwts.builder()
-            .signWith(secretKey, Jwts.SIG.HS512)
+            .signWith(accessSecretKey, Jwts.SIG.HS512)
             .subject(email)
             .issuer(issuer)
             .issuedAt(Timestamp.valueOf(LocalDateTime.now()))
-            .expiration(Date.from(Instant.now().plus(expiration, ChronoUnit.HOURS)))
+            .expiration(Date.from(Instant.now().plus(accessExpiration, ChronoUnit.HOURS)))
             .compact();
+    }
+
+    public String createRefreshToken() {
+        return Jwts.builder()
+                .signWith(refreshSecretKey, Jwts.SIG.HS512)
+                .issuer(issuer)
+                .issuedAt(Timestamp.valueOf(LocalDateTime.now()))
+                .expiration(Date.from(Instant.now().plus(refreshExpiration, ChronoUnit.HOURS)))
+                .compact();
     }
 
     public String convertAfterValidate(String token) {
         return Jwts.parser()
-            .verifyWith(secretKey)
+            .verifyWith(accessSecretKey)
             .build()
             .parseSignedClaims(token)
             .getPayload()
