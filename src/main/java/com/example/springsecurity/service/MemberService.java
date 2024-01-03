@@ -5,7 +5,7 @@ import com.example.springsecurity.jwt.TokenProvider;
 import com.example.springsecurity.dto.SignInRequest;
 import com.example.springsecurity.dto.SignUpRequest;
 import com.example.springsecurity.entity.Member;
-import com.example.springsecurity.repo.MemberRepository;
+import com.example.springsecurity.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

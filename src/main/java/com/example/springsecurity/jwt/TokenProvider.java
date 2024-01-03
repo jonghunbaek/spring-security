@@ -22,7 +22,7 @@ public class TokenProvider {
     private final SecretKey refreshSecretKey;
 
     public TokenProvider(@Value("${access-secret-key}") String accessSecretKey,
-                         @Value("${refresh-secret-key") String refreshSecretKey,
+                         @Value("${refresh-secret-key}") String refreshSecretKey,
                          @Value("${access-expiration-hours}") long accessExpiration,
                          @Value("${refresh-expiration-hours}") long refreshExpiration,
                          @Value("${issuer}") String issuer) {
