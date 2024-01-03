@@ -30,4 +30,9 @@ public class MemberController {
     public SignInResponse authenticateUser(@RequestBody SignInRequest signInRequest) {
         return memberService.signIn(signInRequest);
     }
+
+    @PostMapping("/sign-in/v2")
+    public SignInResponse authenticateUserV2(@RequestBody SignInRequest signInRequest) {
+        return memberService.signInV2(signInRequest);
+    }
 }
