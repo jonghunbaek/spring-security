@@ -1,6 +1,7 @@
 package com.example.springsecurity.service;
 
 import com.example.springsecurity.dto.SignInResponse;
+import com.example.springsecurity.entity.RefreshToken;
 import com.example.springsecurity.jwt.TokenProvider;
 import com.example.springsecurity.dto.SignInRequest;
 import com.example.springsecurity.dto.SignUpRequest;
@@ -14,10 +15,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import static com.example.springsecurity.entity.Role.*;
 
 @Slf4j
+@Transactional
 @RequiredArgsConstructor
 @Service
 public class MemberService {
@@ -56,10 +59,7 @@ public class MemberService {
 
         validatePw(signInRequest, member);
 
-        return SignInResponse.of(
-            tokenProvider.createAccessToken(signInRequest.getEmail()),
-            tokenProvider.createRefreshToken()
-        );
+        return createTokens(signInRequest, member);
     }
 
     private void validatePw(SignInRequest signInRequest, Member member) {
@@ -70,5 +70,14 @@ public class MemberService {
 
     private boolean isNotMatch(SignInRequest signInRequest, Member member) {
         return !passwordEncoder.matches(signInRequest.getPassword(), member.getPassword());
+    }
+
+    private SignInResponse createTokens(SignInRequest signInRequest, Member member) {
+        String accessToken = tokenProvider.createAccessToken(signInRequest.getEmail());
+        String refreshToken = tokenProvider.createRefreshToken();
+
+        refreshTokenRepository.save(new RefreshToken(member.getId(), refreshToken));
+
+        return SignInResponse.of(accessToken, refreshToken);
     }
 }
