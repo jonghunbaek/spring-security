@@ -43,6 +43,11 @@ public class MemberService {
         memberRepository.save(member);
     }
 
+    /**
+     * DaoAuthenticationProvider를 활용해 로그인 - UserDetailsService
+     * @param signInRequest
+     * @return
+     */
     public SignInResponse signIn(SignInRequest signInRequest) {
         Authentication authenticationRequest = UsernamePasswordAuthenticationToken.unauthenticated(signInRequest.getEmail(), signInRequest.getPassword());
         authenticationManager.authenticate(authenticationRequest);
@@ -53,6 +58,11 @@ public class MemberService {
         );
     }
 
+    /**
+     * 직접 DB에 접근하고 PasswordEncoder를 이용해 비밀번호 일치 여부 확인
+     * @param signInRequest
+     * @return
+     */
     public SignInResponse signInV2(SignInRequest signInRequest) {
         Member member = memberRepository.findByEmail(signInRequest.getEmail())
             .orElseThrow(() -> new IllegalArgumentException("일치하는 사용자가 없습니다. email ::" + signInRequest.getEmail()));
@@ -61,23 +71,37 @@ public class MemberService {
 
         return createTokens(signInRequest, member);
     }
-
+    
     private void validatePw(SignInRequest signInRequest, Member member) {
         if (isNotMatch(signInRequest, member)) {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
     }
 
-    private boolean isNotMatch(SignInRequest signInRequest, Member member) {
-        return !passwordEncoder.matches(signInRequest.getPassword(), member.getPassword());
-    }
-
+    /**
+     * Access, Refresh 토큰을 만들고 Refresh Token은 저장 or 수정
+     * @param signInRequest
+     * @param member
+     * @return
+     */
     private SignInResponse createTokens(SignInRequest signInRequest, Member member) {
         String accessToken = tokenProvider.createAccessToken(signInRequest.getEmail());
         String refreshToken = tokenProvider.createRefreshToken();
 
-        refreshTokenRepository.save(new RefreshToken(member.getId(), refreshToken));
+        saveRefreshToken(member, refreshToken);
 
         return SignInResponse.of(accessToken, refreshToken);
+    }
+
+    private boolean isNotMatch(SignInRequest signInRequest, Member member) {
+        return !passwordEncoder.matches(signInRequest.getPassword(), member.getPassword());
+    }
+
+    private void saveRefreshToken(Member member, String refreshToken) {
+        refreshTokenRepository.findById(member.getId())
+            .ifPresentOrElse(
+                refresh -> refresh.changeNewToken(refreshToken),
+                () -> refreshTokenRepository.save(new RefreshToken(member.getId(), refreshToken))
+            );
     }
 }
