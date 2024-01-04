@@ -8,6 +8,7 @@ import com.example.springsecurity.entity.Member;
 import com.example.springsecurity.repository.MemberRepository;
 import com.example.springsecurity.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import static com.example.springsecurity.entity.Role.*;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class MemberService {
@@ -67,6 +69,6 @@ public class MemberService {
     }
 
     private boolean isNotMatch(SignInRequest signInRequest, Member member) {
-        return !passwordEncoder.matches(member.getPassword(), signInRequest.getPassword());
+        return !passwordEncoder.matches(signInRequest.getPassword(), member.getPassword());
     }
 }
