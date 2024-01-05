@@ -1,7 +1,7 @@
 package com.example.springsecurity.controller;
 
 import com.example.springsecurity.dto.SignInRequest;
-import com.example.springsecurity.dto.SignInResponse;
+import com.example.springsecurity.dto.Tokens;
 import com.example.springsecurity.dto.SignUpRequest;
 import com.example.springsecurity.service.MemberService;
 import lombok.RequiredArgsConstructor;
@@ -27,12 +27,12 @@ public class MemberController {
     }
 
     @PostMapping("/sign-in")
-    public SignInResponse authenticateUser(@RequestBody SignInRequest signInRequest) {
+    public Tokens authenticateUser(@RequestBody SignInRequest signInRequest) {
         return memberService.signIn(signInRequest);
     }
 
     @PostMapping("/sign-in/v2")
-    public SignInResponse authenticateUserV2(@RequestBody SignInRequest signInRequest) {
+    public Tokens authenticateUserV2(@RequestBody SignInRequest signInRequest) {
         return memberService.signInV2(signInRequest);
     }
 }

@@ -1,6 +1,6 @@
 package com.example.springsecurity.service;
 
-import com.example.springsecurity.dto.SignInResponse;
+import com.example.springsecurity.dto.Tokens;
 import com.example.springsecurity.entity.RefreshToken;
 import com.example.springsecurity.jwt.TokenProvider;
 import com.example.springsecurity.dto.SignInRequest;
@@ -48,11 +48,11 @@ public class MemberService {
      * @param signInRequest
      * @return
      */
-    public SignInResponse signIn(SignInRequest signInRequest) {
+    public Tokens signIn(SignInRequest signInRequest) {
         Authentication authenticationRequest = UsernamePasswordAuthenticationToken.unauthenticated(signInRequest.getEmail(), signInRequest.getPassword());
         authenticationManager.authenticate(authenticationRequest);
 
-        return SignInResponse.of(
+        return Tokens.of(
                 tokenProvider.createAccessToken(signInRequest.getEmail()),
                 tokenProvider.createRefreshToken()
         );
@@ -63,7 +63,7 @@ public class MemberService {
      * @param signInRequest
      * @return
      */
-    public SignInResponse signInV2(SignInRequest signInRequest) {
+    public Tokens signInV2(SignInRequest signInRequest) {
         Member member = memberRepository.findByEmail(signInRequest.getEmail())
             .orElseThrow(() -> new IllegalArgumentException("일치하는 사용자가 없습니다. email ::" + signInRequest.getEmail()));
 
@@ -84,13 +84,13 @@ public class MemberService {
      * @param member
      * @return
      */
-    private SignInResponse createTokens(SignInRequest signInRequest, Member member) {
+    private Tokens createTokens(SignInRequest signInRequest, Member member) {
         String accessToken = tokenProvider.createAccessToken(signInRequest.getEmail());
         String refreshToken = tokenProvider.createRefreshToken();
 
         saveRefreshToken(member, refreshToken);
 
-        return SignInResponse.of(accessToken, refreshToken);
+        return Tokens.of(accessToken, refreshToken);
     }
 
     private boolean isNotMatch(SignInRequest signInRequest, Member member) {

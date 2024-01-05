@@ -6,11 +6,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Date;
 
 @Component
 public class TokenProvider {
@@ -38,6 +38,7 @@ public class TokenProvider {
             .signWith(accessSecretKey, Jwts.SIG.HS512)
             .subject(email)
             .issuer(issuer)
+            // Timestamp 안쓰도록 수정
             .issuedAt(Timestamp.valueOf(LocalDateTime.now()))
             .expiration(Date.from(Instant.now().plus(accessExpiration, ChronoUnit.HOURS)))
             .compact();
@@ -59,5 +60,14 @@ public class TokenProvider {
             .parseSignedClaims(token)
             .getPayload()
             .getSubject();
+    }
+
+    public void validateRefreshToken(String refreshToken) {
+        Date expiration = Jwts.parser()
+            .verifyWith(refreshSecretKey)
+            .build()
+            .parseSignedClaims(refreshToken)
+            .getPayload()
+            .getExpiration();
     }
 }
