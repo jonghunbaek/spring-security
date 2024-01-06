@@ -38,8 +38,7 @@ public class TokenProvider {
             .signWith(accessSecretKey, Jwts.SIG.HS512)
             .subject(email)
             .issuer(issuer)
-            // Timestamp 안쓰도록 수정
-            .issuedAt(Timestamp.valueOf(LocalDateTime.now()))
+            .issuedAt(Date.from(Instant.now()))
             .expiration(Date.from(Instant.now().plus(accessExpiration, ChronoUnit.HOURS)))
             .compact();
     }
@@ -48,7 +47,7 @@ public class TokenProvider {
         return Jwts.builder()
                 .signWith(refreshSecretKey, Jwts.SIG.HS512)
                 .issuer(issuer)
-                .issuedAt(Timestamp.valueOf(LocalDateTime.now()))
+                .issuedAt(Date.from(Instant.now()))
                 .expiration(Date.from(Instant.now().plus(refreshExpiration, ChronoUnit.HOURS)))
                 .compact();
     }
@@ -69,5 +68,9 @@ public class TokenProvider {
             .parseSignedClaims(refreshToken)
             .getPayload()
             .getExpiration();
+
+        if (expiration.after(Date.from(Instant.now()))) {
+            throw new IllegalArgumentException("refresh token이 만료됐습니다");
+        }
     }
 }
