@@ -39,7 +39,7 @@ public class TokenProvider {
             .subject(email)
             .issuer(issuer)
             .issuedAt(Date.from(Instant.now()))
-            .expiration(Date.from(Instant.now().plus(accessExpiration, ChronoUnit.HOURS)))
+            .expiration(Date.from(Instant.now().plus(accessExpiration, ChronoUnit.SECONDS)))
             .compact();
     }
 
@@ -48,7 +48,7 @@ public class TokenProvider {
                 .signWith(refreshSecretKey, Jwts.SIG.HS512)
                 .issuer(issuer)
                 .issuedAt(Date.from(Instant.now()))
-                .expiration(Date.from(Instant.now().plus(refreshExpiration, ChronoUnit.HOURS)))
+                .expiration(Date.from(Instant.now().plus(refreshExpiration, ChronoUnit.SECONDS)))
                 .compact();
     }
 
@@ -62,15 +62,11 @@ public class TokenProvider {
     }
 
     public void validateRefreshToken(String refreshToken) {
-        Date expiration = Jwts.parser()
+        Jwts.parser()
             .verifyWith(refreshSecretKey)
             .build()
             .parseSignedClaims(refreshToken)
             .getPayload()
             .getExpiration();
-
-        if (expiration.after(Date.from(Instant.now()))) {
-            throw new IllegalArgumentException("refresh token이 만료됐습니다");
-        }
     }
 }

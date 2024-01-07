@@ -18,7 +18,7 @@ logging:
 
 access-secret-key: NiOeyFbN1Gqo10bPgUyTFsRMkJpGLXSvGP04eFqj5B30r5TcrtlSXfQ7TndvYjNvfkEKLqILn0j1SmKODO1Yw3JpBBgI3nVPEahqxeY8qbPSFGyzyEVxnl4AQcrnVneI
 refresh-secret-key: NiOeyFbN1Gqo10bPgUyTFsRMkJpGLXSvGP04eFqj5B30r5TcrtlSXfQ7TndvYjNvfkEKLqILn0j1SmKODO1Yw3JpBBgI3nVPEahqxeY8qbPSFGyzyEVxnl4AQcrnVneI
-access-expiration-hours: 1
-refresh-expiration-hours: 24
+access-expiration-hours: 3600
+refresh-expiration-hours: 86400
 
 issuer: jonghun
