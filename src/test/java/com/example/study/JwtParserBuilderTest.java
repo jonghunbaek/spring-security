@@ -2,9 +2,12 @@ package com.example.study;
 
 import com.example.springsecurity.jwt.TokenProvider;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.*;
 
 public class JwtParserBuilderTest {
 
@@ -21,17 +24,23 @@ public class JwtParserBuilderTest {
         );
     }
 
-    @DisplayName("JwtParserBuilder.verify()가 만료시간도 확인하는 지 테스트한다.")
+    @DisplayName("JwtParserBuilder.verify()가 만료시간을 검증하는 지 테스트한다.")
     @Test
     void checkExpire() throws InterruptedException {
         String refreshToken = tokenProvider.createRefreshToken();
 
         Thread.sleep(5000);
 
-        try {
-            tokenProvider.validateRefreshToken(refreshToken);
-        } catch (ExpiredJwtException e) {
-            System.out.println("토큰 만료" + e);
-        }
+        assertThatThrownBy(() -> tokenProvider.validateRefreshToken(refreshToken))
+            .isInstanceOf(ExpiredJwtException.class);
+    }
+
+    @DisplayName("JwtParserBuilder.verify()가 토큰 유효 상태를 검증하는 지 테스트한다.")
+    @Test
+    void checkValidation() {
+        String refreshToken = tokenProvider.createRefreshToken() + "123";
+
+        assertThatThrownBy(() -> tokenProvider.validateRefreshToken(refreshToken))
+            .isInstanceOf(SignatureException.class);
     }
 }
