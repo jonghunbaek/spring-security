@@ -64,7 +64,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private String parseToSubject(String token) {
         return Optional.ofNullable(token)
             .filter(t -> t.length() >= 10)
-            .map(tokenProvider::convertAfterValidate)
+            .map(tokenProvider::parseAccessToken)
             .orElse(null);
     }
 }

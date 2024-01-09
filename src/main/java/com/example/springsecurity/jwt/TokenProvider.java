@@ -1,14 +1,15 @@
 package com.example.springsecurity.jwt;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.sql.Timestamp;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
@@ -34,39 +35,44 @@ public class TokenProvider {
     }
 
     public String createAccessToken(String email) {
-        return Jwts.builder()
-            .signWith(accessSecretKey, Jwts.SIG.HS512)
-            .subject(email)
-            .issuer(issuer)
-            .issuedAt(Date.from(Instant.now()))
-            .expiration(Date.from(Instant.now().plus(accessExpiration, ChronoUnit.SECONDS)))
-            .compact();
+        return createToken(email, accessSecretKey, accessExpiration);
     }
 
     public String createRefreshToken() {
-        return Jwts.builder()
-                .signWith(refreshSecretKey, Jwts.SIG.HS512)
-                .issuer(issuer)
-                .issuedAt(Date.from(Instant.now()))
-                .expiration(Date.from(Instant.now().plus(refreshExpiration, ChronoUnit.SECONDS)))
-                .compact();
+        return createToken("", refreshSecretKey, refreshExpiration);
     }
 
-    public String convertAfterValidate(String token) {
+    private String createToken(String subject, SecretKey secretKey, long expiration) {
+        return Jwts.builder()
+            .signWith(secretKey, Jwts.SIG.HS512)
+            .subject(subject)
+            .issuer(issuer)
+            .issuedAt(Date.from(Instant.now()))
+            .expiration(Date.from(Instant.now().plus(expiration, ChronoUnit.SECONDS)))
+            .compact();
+    }
+
+    public String parseAccessToken(String token) {
+        JwtParser jwtParser = createJwtParserBy(accessSecretKey);
+
+        return parseToken(token, jwtParser);
+    }
+
+    public void validateRefreshToken(String token) {
+        JwtParser jwtParser = createJwtParserBy(refreshSecretKey);
+
+        parseToken(token, jwtParser);
+    }
+
+    private JwtParser createJwtParserBy(SecretKey secretKey) {
         return Jwts.parser()
-            .verifyWith(accessSecretKey)
-            .build()
-            .parseSignedClaims(token)
+            .verifyWith(secretKey)
+            .build();
+    }
+
+    private static String parseToken(String token, JwtParser jwtParser) {
+        return jwtParser.parseSignedClaims(token)
             .getPayload()
             .getSubject();
-    }
-
-    public void validateRefreshToken(String refreshToken) {
-        Jwts.parser()
-            .verifyWith(refreshSecretKey)
-            .build()
-            .parseSignedClaims(refreshToken)
-            .getPayload()
-            .getExpiration();
     }
 }
