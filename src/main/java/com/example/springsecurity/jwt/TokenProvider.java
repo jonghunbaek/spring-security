@@ -1,7 +1,7 @@
 package com.example.springsecurity.jwt;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -9,9 +9,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 import java.util.Date;
+import java.util.Map;
 
 @Component
 public class TokenProvider {
@@ -53,18 +56,18 @@ public class TokenProvider {
     }
 
     public String parseAccessToken(String token) {
-        JwtParser jwtParser = createJwtParserBy(accessSecretKey);
+        JwtParser jwtParser = createJwtParser(accessSecretKey);
 
         return parseToken(token, jwtParser);
     }
 
     public void validateRefreshToken(String token) {
-        JwtParser jwtParser = createJwtParserBy(refreshSecretKey);
+        JwtParser jwtParser = createJwtParser(refreshSecretKey);
 
         parseToken(token, jwtParser);
     }
 
-    private JwtParser createJwtParserBy(SecretKey secretKey) {
+    private JwtParser createJwtParser(SecretKey secretKey) {
         return Jwts.parser()
             .verifyWith(secretKey)
             .build();
@@ -74,5 +77,25 @@ public class TokenProvider {
         return jwtParser.parseSignedClaims(token)
             .getPayload()
             .getSubject();
+    }
+
+    public String reissueAccessToken(String accessToken, String refreshToken) {
+        validateRefreshToken(refreshToken);
+
+        String email = decodeJwtPayload(accessToken);
+        return createToken(email, accessSecretKey, accessExpiration);
+    }
+
+    private String decodeJwtPayload(String oldAccessToken) {
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        try {
+            return objectMapper.readValue(
+                new String(Base64.getDecoder().decode(oldAccessToken.split("\\.")[1]), StandardCharsets.UTF_8),
+                Map.class
+            ).get("sub").toString();
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

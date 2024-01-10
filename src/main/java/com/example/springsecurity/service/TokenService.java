@@ -13,9 +13,9 @@ public class TokenService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final TokenProvider tokenProvider;
 
-    public Tokens reissueAccessToken(String refreshToken) {
-        tokenProvider.validateRefreshToken(refreshToken);
+    public Tokens reissueAccessToken(String accessToken, String refreshToken) {
+        String newAccessToken = tokenProvider.reissueAccessToken(accessToken, refreshToken);
 
-        return null;
+        return Tokens.of(accessToken, refreshToken);
     }
 }
