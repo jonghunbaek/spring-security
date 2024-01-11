@@ -39,4 +39,9 @@ public class AuthController {
 
         return tokenService.createTokens(signInRequest, memberId);
     }
+
+    @PostMapping("/sign-in/reissue")
+    public Tokens reissueTokens(Tokens tokens) {
+        return tokenService.reissueAccessToken(tokens);
+    }
 }

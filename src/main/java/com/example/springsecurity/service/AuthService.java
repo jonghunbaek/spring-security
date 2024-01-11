@@ -6,7 +6,6 @@ import com.example.springsecurity.dto.SignInRequest;
 import com.example.springsecurity.dto.SignUpRequest;
 import com.example.springsecurity.entity.Member;
 import com.example.springsecurity.repository.MemberRepository;
-import com.example.springsecurity.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;

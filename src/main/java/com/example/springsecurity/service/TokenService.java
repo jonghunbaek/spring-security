@@ -2,7 +2,6 @@ package com.example.springsecurity.service;
 
 import com.example.springsecurity.dto.SignInRequest;
 import com.example.springsecurity.dto.Tokens;
-import com.example.springsecurity.entity.Member;
 import com.example.springsecurity.entity.RefreshToken;
 import com.example.springsecurity.jwt.TokenProvider;
 import com.example.springsecurity.repository.RefreshTokenRepository;
@@ -39,9 +38,9 @@ public class TokenService {
             );
     }
 
-    public Tokens reissueAccessToken(String accessToken, String refreshToken) {
-        String newAccessToken = tokenProvider.reissueAccessToken(accessToken, refreshToken);
+    public Tokens reissueAccessToken(Tokens tokens) {
+        String newAccessToken = tokenProvider.reissueAccessToken(tokens.getAccessToken(), tokens.getRefreshToken());
 
-        return Tokens.of(accessToken, refreshToken);
+        return Tokens.of(newAccessToken, tokens.getRefreshToken());
     }
 }
