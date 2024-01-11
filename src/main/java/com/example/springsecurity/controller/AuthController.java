@@ -3,7 +3,8 @@ package com.example.springsecurity.controller;
 import com.example.springsecurity.dto.SignInRequest;
 import com.example.springsecurity.dto.Tokens;
 import com.example.springsecurity.dto.SignUpRequest;
-import com.example.springsecurity.service.MemberService;
+import com.example.springsecurity.service.AuthService;
+import com.example.springsecurity.service.TokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,24 +16,27 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/security")
 @RequiredArgsConstructor
 @RestController
-public class MemberController {
+public class AuthController {
 
-    private final MemberService memberService;
+    private final AuthService authService;
+    private final TokenService tokenService;
 
     @PostMapping("/sign-up")
     public ResponseEntity<String> joinMember(@RequestBody SignUpRequest signUpRequest)  {
-        memberService.signUp(signUpRequest);
+        authService.signUp(signUpRequest);
 
         return new ResponseEntity<>("회원 가입 성공", HttpStatus.OK);
     }
 
     @PostMapping("/sign-in")
     public Tokens authenticateUser(@RequestBody SignInRequest signInRequest) {
-        return memberService.signIn(signInRequest);
+        return authService.signIn(signInRequest);
     }
 
     @PostMapping("/sign-in/v2")
     public Tokens authenticateUserV2(@RequestBody SignInRequest signInRequest) {
-        return memberService.signInV2(signInRequest);
+        Long memberId = authService.signInV2(signInRequest);
+
+        return tokenService.createTokens(signInRequest, memberId);
     }
 }

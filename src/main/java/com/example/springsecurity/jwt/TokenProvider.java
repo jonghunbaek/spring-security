@@ -61,12 +61,6 @@ public class TokenProvider {
         return parseToken(token, jwtParser);
     }
 
-    public void validateRefreshToken(String token) {
-        JwtParser jwtParser = createJwtParser(refreshSecretKey);
-
-        parseToken(token, jwtParser);
-    }
-
     private JwtParser createJwtParser(SecretKey secretKey) {
         return Jwts.parser()
             .verifyWith(secretKey)
@@ -84,6 +78,12 @@ public class TokenProvider {
 
         String email = decodeJwtPayload(accessToken);
         return createToken(email, accessSecretKey, accessExpiration);
+    }
+
+    private void validateRefreshToken(String token) {
+        JwtParser jwtParser = createJwtParser(refreshSecretKey);
+
+        parseToken(token, jwtParser);
     }
 
     private String decodeJwtPayload(String oldAccessToken) {
