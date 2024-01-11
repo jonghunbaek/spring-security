@@ -38,6 +38,11 @@ public class TokenService {
             );
     }
 
+    /**
+     * Access Token을 재발행, Refresh Token의 만료시간 및 토큰에 대한 검증은 TokenProvider에서 수행
+     * @param tokens
+     * @return
+     */
     public Tokens reissueAccessToken(Tokens tokens) {
         String newAccessToken = tokenProvider.reissueAccessToken(tokens.getAccessToken(), tokens.getRefreshToken());
 
