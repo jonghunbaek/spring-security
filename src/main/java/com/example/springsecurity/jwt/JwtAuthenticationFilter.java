@@ -11,7 +11,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -26,7 +25,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     public static final String AUTH_TYPE = "Bearer ";
 
     private final TokenProvider tokenProvider;
-    private final CustomUserDetailService userDetailService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -56,14 +54,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private Authentication getAuthentication(String token) {
         String subject = parseToSubject(token);
-        UserDetails userDetails = userDetailService.loadUserByUsername(subject);
 
-        return new UsernamePasswordAuthenticationToken(userDetails.getUsername(), "", userDetails.getAuthorities());
+        // TODO : 토큰에 Authority 값 넣기
+        return new UsernamePasswordAuthenticationToken(subject, "");
     }
 
     private String parseToSubject(String token) {
         return Optional.ofNullable(token)
-            .filter(t -> t.length() >= 10)
             .map(tokenProvider::parseAccessToken)
             .orElse(null);
     }

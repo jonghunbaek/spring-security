@@ -45,14 +45,13 @@ public class AuthService {
      * @param signInRequest
      * @return
      */
-    public Tokens signIn(SignInRequest signInRequest) {
+    public Long signIn(SignInRequest signInRequest) {
         Authentication authenticationRequest = UsernamePasswordAuthenticationToken.unauthenticated(signInRequest.getEmail(), signInRequest.getPassword());
-        authenticationManager.authenticate(authenticationRequest);
+        Authentication authenticateResponse = authenticationManager.authenticate(authenticationRequest);
 
-        return Tokens.of(
-                tokenProvider.createAccessToken(signInRequest.getEmail()),
-                tokenProvider.createRefreshToken()
-        );
+        Member member = memberRepository.findByEmail((String) authenticateResponse.getPrincipal()).get();
+
+        return member.getId();
     }
 
     /**

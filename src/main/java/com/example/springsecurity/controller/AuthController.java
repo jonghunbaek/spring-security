@@ -30,7 +30,9 @@ public class AuthController {
 
     @PostMapping("/sign-in")
     public Tokens authenticateUser(@RequestBody SignInRequest signInRequest) {
-        return authService.signIn(signInRequest);
+        Long memberId = authService.signIn(signInRequest);
+
+        return tokenService.createTokens(signInRequest, memberId);
     }
 
     @PostMapping("/sign-in/v2")
