@@ -37,8 +37,8 @@ public class TokenProvider {
         this.issuer = issuer;
     }
 
-    public String createAccessToken(String email) {
-        return createToken(email, accessSecretKey, accessExpiration);
+    public String createAccessToken(String subject) {
+        return createToken(subject, accessSecretKey, accessExpiration);
     }
 
     public String createRefreshToken() {

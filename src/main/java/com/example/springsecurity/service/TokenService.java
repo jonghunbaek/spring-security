@@ -3,6 +3,7 @@ package com.example.springsecurity.service;
 import com.example.springsecurity.dto.SignInRequest;
 import com.example.springsecurity.dto.Tokens;
 import com.example.springsecurity.entity.RefreshToken;
+import com.example.springsecurity.entity.Role;
 import com.example.springsecurity.jwt.TokenProvider;
 import com.example.springsecurity.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,12 +23,18 @@ public class TokenService {
      * @return
      */
     public Tokens createTokens(SignInRequest signInRequest, Long memberId) {
-        String accessToken = tokenProvider.createAccessToken(signInRequest.getEmail());
+        // TODO : Role 어떻게 꺼내올 지 고민 필요
+        String subject = createSubject(signInRequest.getEmail(), Role.ROLE_USER);
+        String accessToken = tokenProvider.createAccessToken(subject);
         String refreshToken = tokenProvider.createRefreshToken();
 
         saveRefreshToken(memberId, refreshToken);
 
         return Tokens.of(accessToken, refreshToken);
+    }
+
+    private String createSubject(String email, Role role) {
+        return email + ":" + role.toString();
     }
 
     private void saveRefreshToken(Long memberId, String refreshToken) {
