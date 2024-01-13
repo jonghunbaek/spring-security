@@ -1,5 +1,6 @@
 package com.example.springsecurity.service.dto;
 
+import com.example.springsecurity.entity.Member;
 import com.example.springsecurity.entity.Role;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,5 +17,13 @@ public class TokenInfo {
         this.memberId = memberId;
         this.email = email;
         this.role = role;
+    }
+
+    public static TokenInfo of(Member member) {
+        return TokenInfo.builder()
+            .memberId(member.getId())
+            .email(member.getEmail())
+            .role(member.getRole())
+            .build();
     }
 }

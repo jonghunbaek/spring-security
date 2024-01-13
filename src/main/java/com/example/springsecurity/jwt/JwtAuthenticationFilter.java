@@ -1,6 +1,5 @@
 package com.example.springsecurity.jwt;
 
-import com.example.springsecurity.service.CustomUserDetailService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

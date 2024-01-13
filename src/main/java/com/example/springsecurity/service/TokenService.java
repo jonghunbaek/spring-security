@@ -17,8 +17,8 @@ public class TokenService {
 
     /**
      *  Access, Refresh 토큰을 만들고 Refresh Token은 저장 or 수정
-     * @param tokenInfo
-     * @return
+     * @param tokenInfo 토큰 생성에 필요한 정보를 담은 DTO
+     * @return access, refresh 토큰을 생성해 반환
      */
     public Tokens createTokens(TokenInfo tokenInfo) {
         String accessToken = tokenProvider.createAccessToken(tokenInfo);
@@ -32,15 +32,15 @@ public class TokenService {
     private void saveRefreshToken(Long memberId, String refreshToken) {
         refreshTokenRepository.findById(memberId)
             .ifPresentOrElse(
-                refresh -> refresh.changeNewToken(refreshToken),
+                refresh -> refresh.updateNewToken(refreshToken),
                 () -> refreshTokenRepository.save(new RefreshToken(memberId, refreshToken))
             );
     }
 
     /**
      * Access Token을 재발행, Refresh Token의 만료시간 및 토큰에 대한 검증은 TokenProvider에서 수행
-     * @param tokens
-     * @return
+     * @param tokens access, refresh token
+     * @return 새로운 access token과 기존 refresh token
      */
     public Tokens reissueAccessToken(Tokens tokens) {
         String newAccessToken = tokenProvider.reissueAccessToken(tokens.getAccessToken(), tokens.getRefreshToken());

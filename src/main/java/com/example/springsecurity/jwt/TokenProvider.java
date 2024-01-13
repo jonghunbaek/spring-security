@@ -71,18 +71,6 @@ public class TokenProvider {
             .split(SUBJECT_DELIMITER);
     }
 
-    private JwtParser createJwtParser(SecretKey secretKey) {
-        return Jwts.parser()
-            .verifyWith(secretKey)
-            .build();
-    }
-
-    private static String parseToken(String token, JwtParser jwtParser) {
-        return jwtParser.parseSignedClaims(token)
-            .getPayload()
-            .getSubject();
-    }
-
     public String reissueAccessToken(String accessToken, String refreshToken) {
         validateRefreshToken(refreshToken);
 
@@ -96,6 +84,29 @@ public class TokenProvider {
         parseToken(token, jwtParser);
     }
 
+    private JwtParser createJwtParser(SecretKey secretKey) {
+        return Jwts.parser()
+            .verifyWith(secretKey)
+            .build();
+    }
+
+    /**
+     * 내부 로직을 살펴보면 parseSignedClaims에서 만료, 토큰 값 검증이 이뤄진다.
+     * @param token access 또는 refresh 토큰
+     * @param jwtParser access 또는 refresh 토큰의 시크릿 키를 인자로 생성됨
+     * @return subject를 반환
+     */
+    private static String parseToken(String token, JwtParser jwtParser) {
+        return jwtParser.parseSignedClaims(token)
+            .getPayload()
+            .getSubject();
+    }
+
+    /**
+     * 토큰이 만료된 경우 subject만 가져오기 위해 디코딩한다.
+     * @param oldAccessToken 만료된 access token
+     * @return subject를 반환
+     */
     private String decodeJwtPayload(String oldAccessToken) {
         ObjectMapper objectMapper = new ObjectMapper();
 

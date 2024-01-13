@@ -20,7 +20,7 @@ public class RefreshToken {
         this.token = token;
     }
 
-    public void changeNewToken(String newToken) {
+    public void updateNewToken(String newToken) {
         this.token = newToken;
     }
 }
