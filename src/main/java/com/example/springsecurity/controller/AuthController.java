@@ -22,6 +22,13 @@ public class AuthController {
     private final AuthService authService;
     private final TokenService tokenService;
 
+    // TODO
+    //  남은 기능
+    //  1. 로그아웃
+    //  2. 로그인 시 토큰 쿠키 보안설정 후 반환
+    //  3. OAUTH를 활용한 소셜 로그인
+    //  4. 테스트 작성
+
     @PostMapping("/sign-up")
     public ResponseEntity<String> joinMember(@RequestBody SignUpRequest signUpRequest)  {
         authService.signUp(signUpRequest);

@@ -7,6 +7,7 @@ import com.example.springsecurity.repository.RefreshTokenRepository;
 import com.example.springsecurity.service.dto.TokenInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
@@ -20,6 +21,7 @@ public class TokenService {
      * @param tokenInfo 토큰 생성에 필요한 정보를 담은 DTO
      * @return access, refresh 토큰을 생성해 반환
      */
+    @Transactional
     public Tokens createTokens(TokenInfo tokenInfo) {
         String accessToken = tokenProvider.createAccessToken(tokenInfo);
         String refreshToken = tokenProvider.createRefreshToken();

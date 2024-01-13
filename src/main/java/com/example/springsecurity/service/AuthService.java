@@ -31,6 +31,7 @@ public class AuthService {
      * @param signInRequest 로그인 요청 정보
      * @return 토큰 생성에 필요한 정보를 반환
      */
+    @Transactional(readOnly = true)
     public TokenInfo signIn(SignInRequest signInRequest) {
         Member member = memberRepository.findByEmail(signInRequest.getEmail())
             .orElseThrow(() -> new IllegalArgumentException("일치하는 사용자가 없습니다. email ::" + signInRequest.getEmail()));
