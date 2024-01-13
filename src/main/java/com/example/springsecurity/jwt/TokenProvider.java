@@ -1,5 +1,7 @@
 package com.example.springsecurity.jwt;
 
+import com.example.springsecurity.entity.Role;
+import com.example.springsecurity.service.dto.TokenInfo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.JwtParser;
@@ -37,8 +39,13 @@ public class TokenProvider {
         this.issuer = issuer;
     }
 
-    public String createAccessToken(String subject) {
+    public String createAccessToken(TokenInfo tokenInfo) {
+        String subject = createSubject(tokenInfo.getEmail(), tokenInfo.getRole());
         return createToken(subject, accessSecretKey, accessExpiration);
+    }
+
+    private String createSubject(String email, Role role) {
+        return email + ":" + role.toString();
     }
 
     public String createRefreshToken() {

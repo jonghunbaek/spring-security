@@ -1,11 +1,10 @@
 package com.example.springsecurity.service;
 
-import com.example.springsecurity.dto.SignInRequest;
 import com.example.springsecurity.dto.Tokens;
 import com.example.springsecurity.entity.RefreshToken;
-import com.example.springsecurity.entity.Role;
 import com.example.springsecurity.jwt.TokenProvider;
 import com.example.springsecurity.repository.RefreshTokenRepository;
+import com.example.springsecurity.service.dto.TokenInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,24 +16,17 @@ public class TokenService {
     private final TokenProvider tokenProvider;
 
     /**
-     * Access, Refresh 토큰을 만들고 Refresh Token은 저장 or 수정
-     * @param signInRequest
-     * @param memberId
+     *  Access, Refresh 토큰을 만들고 Refresh Token은 저장 or 수정
+     * @param tokenInfo
      * @return
      */
-    public Tokens createTokens(SignInRequest signInRequest, Long memberId) {
-        // TODO : Role 어떻게 꺼내올 지 고민 필요
-        String subject = createSubject(signInRequest.getEmail(), Role.ROLE_USER);
-        String accessToken = tokenProvider.createAccessToken(subject);
+    public Tokens createTokens(TokenInfo tokenInfo) {
+        String accessToken = tokenProvider.createAccessToken(tokenInfo);
         String refreshToken = tokenProvider.createRefreshToken();
 
-        saveRefreshToken(memberId, refreshToken);
+        saveRefreshToken(tokenInfo.getMemberId(), refreshToken);
 
         return Tokens.of(accessToken, refreshToken);
-    }
-
-    private String createSubject(String email, Role role) {
-        return email + ":" + role.toString();
     }
 
     private void saveRefreshToken(Long memberId, String refreshToken) {

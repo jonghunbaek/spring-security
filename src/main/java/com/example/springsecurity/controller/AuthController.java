@@ -5,6 +5,7 @@ import com.example.springsecurity.dto.Tokens;
 import com.example.springsecurity.dto.SignUpRequest;
 import com.example.springsecurity.service.AuthService;
 import com.example.springsecurity.service.TokenService;
+import com.example.springsecurity.service.dto.TokenInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,16 +31,9 @@ public class AuthController {
 
     @PostMapping("/sign-in")
     public Tokens authenticateUser(@RequestBody SignInRequest signInRequest) {
-        Long memberId = authService.signIn(signInRequest);
+        TokenInfo tokenInfo = authService.signIn(signInRequest);
 
-        return tokenService.createTokens(signInRequest, memberId);
-    }
-
-    @PostMapping("/sign-in/v2")
-    public Tokens authenticateUserV2(@RequestBody SignInRequest signInRequest) {
-        Long memberId = authService.signInV2(signInRequest);
-
-        return tokenService.createTokens(signInRequest, memberId);
+        return tokenService.createTokens(tokenInfo);
     }
 
     @PostMapping("/sign-in/reissue")
