@@ -21,11 +21,13 @@ import java.util.Map;
 @Component
 public class TokenProvider {
 
-    private final long accessExpiration;
-    private final long refreshExpiration;
-    private final String issuer;
-    private final SecretKey accessSecretKey;
-    private final SecretKey refreshSecretKey;
+    public static final String SUBJECT_DELIMITER = ":";
+
+    private long accessExpiration;
+    private long refreshExpiration;
+    private String issuer;
+    private SecretKey accessSecretKey;
+    private SecretKey refreshSecretKey;
 
     public TokenProvider(@Value("${access-secret-key}") String accessSecretKey,
                          @Value("${refresh-secret-key}") String refreshSecretKey,
@@ -45,7 +47,7 @@ public class TokenProvider {
     }
 
     private String createSubject(String email, Role role) {
-        return email + ":" + role.toString();
+        return email + SUBJECT_DELIMITER + role.toString();
     }
 
     public String createRefreshToken() {
@@ -62,10 +64,11 @@ public class TokenProvider {
             .compact();
     }
 
-    public String parseAccessToken(String token) {
+    public String[] parseAccessToken(String token) {
         JwtParser jwtParser = createJwtParser(accessSecretKey);
 
-        return parseToken(token, jwtParser);
+        return parseToken(token, jwtParser)
+            .split(SUBJECT_DELIMITER);
     }
 
     private JwtParser createJwtParser(SecretKey secretKey) {

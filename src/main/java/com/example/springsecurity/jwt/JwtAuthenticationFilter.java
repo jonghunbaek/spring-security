@@ -10,11 +10,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Optional;
 
 @Slf4j
@@ -23,6 +25,7 @@ import java.util.Optional;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     public static final String AUTH_TYPE = "Bearer ";
+
 
     private final TokenProvider tokenProvider;
 
@@ -53,15 +56,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private Authentication getAuthentication(String token) {
-        String subject = parseToSubject(token);
+        String[] subjects = tokenProvider.parseAccessToken(token);
 
-        // TODO : 토큰에 Authority 값 넣기
-        return new UsernamePasswordAuthenticationToken(subject, "");
-    }
-
-    private String parseToSubject(String token) {
-        return Optional.ofNullable(token)
-            .map(tokenProvider::parseAccessToken)
-            .orElse(null);
+        return new UsernamePasswordAuthenticationToken(
+            subjects[0],
+            "",
+            Collections.singletonList(new SimpleGrantedAuthority(subjects[1]))
+        );
     }
 }
