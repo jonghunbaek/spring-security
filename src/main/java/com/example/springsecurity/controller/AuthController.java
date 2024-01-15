@@ -6,8 +6,11 @@ import com.example.springsecurity.dto.SignUpRequest;
 import com.example.springsecurity.service.AuthService;
 import com.example.springsecurity.service.TokenService;
 import com.example.springsecurity.service.dto.TokenInfo;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -37,11 +40,27 @@ public class AuthController {
     }
 
     @PostMapping("/sign-in")
-    public Tokens authenticateUser(@RequestBody SignInRequest signInRequest) {
+    public void authenticateUser(@RequestBody SignInRequest signInRequest, HttpServletResponse response) {
         TokenInfo tokenInfo = authService.signIn(signInRequest);
+        Tokens tokens = tokenService.createTokens(tokenInfo);
 
-        return tokenService.createTokens(tokenInfo);
+        ResponseCookie accessTokenCookie = createCookie(tokens.getAccessToken());
+        response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
+
+        ResponseCookie refreshTokenCookie = createCookie(tokens.getRefreshToken());
+        response.addHeader(HttpHeaders.SET_COOKIE2, refreshTokenCookie.toString());
     }
+
+    private static ResponseCookie createCookie(String token) {
+        return ResponseCookie.from(token)
+            .httpOnly(true)
+            .secure(true)
+            .path("/")
+            .maxAge(60 * 60)
+            .sameSite("None")
+            .build();
+    }
+
 
     @PostMapping("/sign-in/reissue")
     public Tokens reissueTokens(Tokens tokens) {
