@@ -6,16 +6,17 @@ import com.example.springsecurity.dto.SignUpRequest;
 import com.example.springsecurity.service.AuthService;
 import com.example.springsecurity.service.TokenService;
 import com.example.springsecurity.service.dto.TokenInfo;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Arrays;
 
 @RequestMapping("/security")
 @RequiredArgsConstructor
@@ -28,9 +29,9 @@ public class AuthController {
     // TODO
     //  남은 기능
     //  1. 로그아웃
-    //  2. 로그인 시 토큰 쿠키 보안설정 후 반환
-    //  3. OAUTH를 활용한 소셜 로그인
-    //  4. 테스트 작성
+    //  2. OAUTH를 활용한 소셜 로그인
+    //  3. 테스트 작성
+    //  4. RTR기법 적용
 
     @PostMapping("/sign-up")
     public ResponseEntity<String> joinMember(@RequestBody SignUpRequest signUpRequest)  {
@@ -44,26 +45,35 @@ public class AuthController {
         TokenInfo tokenInfo = authService.signIn(signInRequest);
         Tokens tokens = tokenService.createTokens(tokenInfo);
 
-        ResponseCookie accessTokenCookie = createCookie(tokens.getAccessToken());
-        response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
+        setUpTokens(tokens, response);
+    }
 
+    private static void setUpTokens(Tokens tokens, HttpServletResponse response) {
         ResponseCookie refreshTokenCookie = createCookie(tokens.getRefreshToken());
-        response.addHeader(HttpHeaders.SET_COOKIE2, refreshTokenCookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
+        response.addHeader(HttpHeaders.AUTHORIZATION, tokens.getAccessToken());
     }
 
     private static ResponseCookie createCookie(String token) {
-        return ResponseCookie.from(token)
+        // 왜 쿠키 2개 저장이 안될까?
+        return ResponseCookie.from("refresh", token)
             .httpOnly(true)
             .secure(true)
             .path("/")
-            .maxAge(60 * 60)
+            .maxAge(60)
             .sameSite("None")
             .build();
     }
 
 
     @PostMapping("/sign-in/reissue")
-    public Tokens reissueTokens(Tokens tokens) {
-        return tokenService.reissueAccessToken(tokens);
+    public void reissueTokens(
+        @CookieValue(name = "refresh") String refreshToken,
+        @RequestHeader(name = HttpHeaders.AUTHORIZATION) String accessToken,
+        HttpServletResponse response) {
+
+        Tokens newTokens = tokenService.reissueAccessToken(accessToken, refreshToken);
+
+        setUpTokens(newTokens, response);
     }
 }

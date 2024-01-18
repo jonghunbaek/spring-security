@@ -41,12 +41,11 @@ public class TokenService {
 
     /**
      * Access Token을 재발행, Refresh Token의 만료시간 및 토큰에 대한 검증은 TokenProvider에서 수행
-     * @param tokens access, refresh token
      * @return 새로운 access token과 기존 refresh token
      */
-    public Tokens reissueAccessToken(Tokens tokens) {
-        String newAccessToken = tokenProvider.reissueAccessToken(tokens.getAccessToken(), tokens.getRefreshToken());
+    public Tokens reissueAccessToken(String accessTokens, String refreshToken) {
+        String newAccessToken = tokenProvider.reissueAccessToken(accessTokens, refreshToken);
 
-        return Tokens.of(newAccessToken, tokens.getRefreshToken());
+        return Tokens.of(newAccessToken, refreshToken);
     }
 }
