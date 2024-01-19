@@ -48,13 +48,33 @@ public class AuthController {
         setUpTokens(tokens, response);
     }
 
-    private static void setUpTokens(Tokens tokens, HttpServletResponse response) {
+    @PostMapping("/sign-in/reissue")
+    public void reissueTokens(
+            @CookieValue(name = "refresh") String refreshToken,
+            @RequestHeader(name = HttpHeaders.AUTHORIZATION) String accessToken,
+            HttpServletResponse response) {
+
+        Tokens newTokens = tokenService.reissueAccessToken(accessToken, refreshToken);
+
+        setUpTokens(newTokens, response);
+    }
+    
+    @PostMapping("/logout")
+    public void logout(
+            @CookieValue(name = "refresh") String refreshToken,
+            @RequestHeader(name = HttpHeaders.AUTHORIZATION) String accessToken
+    ) {
+        // TODO :: Access 토큰 블랙리스트 처리할 방법 찾기
+        tokenService.deleteRefreshToken(accessToken, refreshToken);
+    }
+
+    private void setUpTokens(Tokens tokens, HttpServletResponse response) {
         ResponseCookie refreshTokenCookie = createCookie(tokens.getRefreshToken());
         response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
         response.addHeader(HttpHeaders.AUTHORIZATION, tokens.getAccessToken());
     }
 
-    private static ResponseCookie createCookie(String token) {
+    private ResponseCookie createCookie(String token) {
         // 왜 쿠키 2개 저장이 안될까?
         return ResponseCookie.from("refresh", token)
             .httpOnly(true)
@@ -63,17 +83,5 @@ public class AuthController {
             .maxAge(60)
             .sameSite("None")
             .build();
-    }
-
-
-    @PostMapping("/sign-in/reissue")
-    public void reissueTokens(
-        @CookieValue(name = "refresh") String refreshToken,
-        @RequestHeader(name = HttpHeaders.AUTHORIZATION) String accessToken,
-        HttpServletResponse response) {
-
-        Tokens newTokens = tokenService.reissueAccessToken(accessToken, refreshToken);
-
-        setUpTokens(newTokens, response);
     }
 }

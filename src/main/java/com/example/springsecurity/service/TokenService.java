@@ -44,8 +44,15 @@ public class TokenService {
      * @return 새로운 access token과 기존 refresh token
      */
     public Tokens reissueAccessToken(String accessTokens, String refreshToken) {
+        // TODO :: 토큰 재발행할 때 Refresh토큰 db검증 필요한 지 고민해보기.
         String newAccessToken = tokenProvider.reissueAccessToken(accessTokens, refreshToken);
 
         return Tokens.of(newAccessToken, refreshToken);
+    }
+
+    public void deleteRefreshToken(String accessToken, String refreshToken) {
+        // TODO :: 리프레쉬 토큰이 변조된 경우 예외조차 터지지 않으므로 실제로 삭제가 이뤄지지 않음.
+        //  액세스 토큰에서 memberId를 가져와 id로 리프레쉬 토큰을 가져오고 요청으로 받은 리프레쉬 토큰과 비교 또는 리프레시 토큰 검증
+        refreshTokenRepository.deleteByToken(refreshToken);
     }
 }
