@@ -6,8 +6,6 @@ import com.example.springsecurity.dto.SignUpRequest;
 import com.example.springsecurity.service.AuthService;
 import com.example.springsecurity.service.TokenService;
 import com.example.springsecurity.service.dto.TokenInfo;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -15,8 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Arrays;
 
 @RequestMapping("/security")
 @RequiredArgsConstructor
@@ -45,7 +41,7 @@ public class AuthController {
         TokenInfo tokenInfo = authService.signIn(signInRequest);
         Tokens tokens = tokenService.createTokens(tokenInfo);
 
-        setUpTokens(tokens, response);
+        setUpTokensToCookie(tokens, response);
     }
 
     @PostMapping("/sign-in/reissue")
@@ -56,31 +52,31 @@ public class AuthController {
 
         Tokens newTokens = tokenService.reissueAccessToken(accessToken, refreshToken);
 
-        setUpTokens(newTokens, response);
+        setUpTokensToCookie(newTokens, response);
     }
     
     @PostMapping("/logout")
     public void logout(
             @CookieValue(name = "refresh") String refreshToken,
-            @RequestHeader(name = HttpHeaders.AUTHORIZATION) String accessToken
-    ) {
+            @RequestHeader(name = HttpHeaders.AUTHORIZATION) String accessToken) {
         // TODO :: Access 토큰 블랙리스트 처리할 방법 찾기
         tokenService.deleteRefreshToken(accessToken, refreshToken);
     }
 
-    private void setUpTokens(Tokens tokens, HttpServletResponse response) {
-        ResponseCookie refreshTokenCookie = createCookie(tokens.getRefreshToken());
+    private void setUpTokensToCookie(Tokens tokens, HttpServletResponse response) {
+        ResponseCookie accessTokenCookie = createCookie("access", tokens.getAccessToken(), false);
+        ResponseCookie refreshTokenCookie = createCookie("refresh", tokens.getRefreshToken(), true);
+
+        response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
         response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
-        response.addHeader(HttpHeaders.AUTHORIZATION, tokens.getAccessToken());
     }
 
-    private ResponseCookie createCookie(String token) {
-        // 왜 쿠키 2개 저장이 안될까?
-        return ResponseCookie.from("refresh", token)
-            .httpOnly(true)
+    private ResponseCookie createCookie(String tokenType, String token, boolean isHttpOnly) {
+        return ResponseCookie.from(tokenType, token)
+            .httpOnly(isHttpOnly)
             .secure(true)
             .path("/")
-            .maxAge(60)
+            .maxAge(60 * 60 * 24)
             .sameSite("None")
             .build();
     }

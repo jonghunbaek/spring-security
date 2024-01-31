@@ -96,7 +96,7 @@ public class TokenProvider {
      * @param jwtParser access 또는 refresh 토큰의 시크릿 키를 인자로 생성됨
      * @return subject를 반환
      */
-    private static String parseToken(String token, JwtParser jwtParser) {
+    private String parseToken(String token, JwtParser jwtParser) {
         return jwtParser.parseSignedClaims(token)
             .getPayload()
             .getSubject();
