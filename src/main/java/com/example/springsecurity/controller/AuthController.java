@@ -50,7 +50,7 @@ public class AuthController {
             @RequestHeader(name = HttpHeaders.AUTHORIZATION) String accessToken,
             HttpServletResponse response) {
 
-        Tokens newTokens = tokenService.reissueAccessToken(accessToken, refreshToken);
+        Tokens newTokens = tokenService.reissueTokens(accessToken, refreshToken);
 
         setUpTokensToCookie(newTokens, response);
     }
@@ -59,7 +59,8 @@ public class AuthController {
     public void logout(
             @CookieValue(name = "refresh") String refreshToken,
             @RequestHeader(name = HttpHeaders.AUTHORIZATION) String accessToken) {
-        // TODO :: Access 토큰 블랙리스트 처리할 방법 찾기
+        // TODO
+        //  Access 토큰 블랙리스트 처리할 방법 찾기
         tokenService.deleteRefreshToken(accessToken, refreshToken);
     }
 

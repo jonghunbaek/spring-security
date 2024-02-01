@@ -40,14 +40,26 @@ public class TokenService {
     }
 
     /**
-     * Access Token을 재발행, Refresh Token의 만료시간 및 토큰에 대한 검증은 TokenProvider에서 수행
+     * Access Token, Refresh Token 재발행
+     * Refresh Token은 jjwt라이브러리를 이용한 만료시간, 변조 여부 1차검증 후
+     * DB에 저장된 Refresh Token과 비교해 2차 검증을 한다.
      * @return 새로운 access token과 기존 refresh token
      */
-    public Tokens reissueAccessToken(String accessTokens, String refreshToken) {
-        // TODO :: 토큰 재발행할 때 Refresh토큰 db검증 필요한 지 고민해보기.
+    @Transactional
+    public Tokens reissueTokens(String accessTokens, String refreshToken) {
         String newAccessToken = tokenProvider.reissueAccessToken(accessTokens, refreshToken);
+        String newRefreshToken = reissueRefreshToken(refreshToken);
 
-        return Tokens.of(newAccessToken, refreshToken);
+        return Tokens.of(newAccessToken, newRefreshToken);
+    }
+
+    private String reissueRefreshToken(String refreshToken) {
+        RefreshToken findRefreshToken = refreshTokenRepository.findByToken(refreshToken)
+            .orElseThrow(() -> new IllegalArgumentException("해당 리프레쉬 토큰이 존재하지 않습니다."));
+
+        String newRefreshToken = tokenProvider.createRefreshToken();
+        findRefreshToken.updateNewToken(newRefreshToken);
+        return newRefreshToken;
     }
 
     public void deleteRefreshToken(String accessToken, String refreshToken) {

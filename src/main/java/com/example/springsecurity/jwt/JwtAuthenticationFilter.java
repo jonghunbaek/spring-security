@@ -55,12 +55,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private Authentication getAuthentication(String token) {
-        String[] subjects = tokenProvider.parseAccessToken(token);
+        String[] idAndRole = tokenProvider.parseAccessToken(token);
 
         return new UsernamePasswordAuthenticationToken(
-            subjects[0],
+            idAndRole[0],
             "",
-            Collections.singletonList(new SimpleGrantedAuthority(subjects[1]))
+            Collections.singletonList(new SimpleGrantedAuthority(idAndRole[1]))
         );
     }
 }

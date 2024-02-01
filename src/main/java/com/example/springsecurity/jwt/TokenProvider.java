@@ -42,12 +42,12 @@ public class TokenProvider {
     }
 
     public String createAccessToken(TokenInfo tokenInfo) {
-        String subject = createSubject(tokenInfo.getEmail(), tokenInfo.getRole());
+        String subject = createSubject(tokenInfo.getMemberId(), tokenInfo.getRole().toString());
         return createToken(subject, accessSecretKey, accessExpiration);
     }
 
-    private String createSubject(String email, Role role) {
-        return email + SUBJECT_DELIMITER + role.toString();
+    private String createSubject(Long memberId, String role) {
+        return memberId + SUBJECT_DELIMITER + role;
     }
 
     public String createRefreshToken() {
@@ -74,8 +74,8 @@ public class TokenProvider {
     public String reissueAccessToken(String accessToken, String refreshToken) {
         validateRefreshToken(refreshToken);
 
-        String email = decodeJwtPayload(accessToken);
-        return createToken(email, accessSecretKey, accessExpiration);
+        String[] idAndRole = decodeJwtPayload(accessToken);
+        return createToken(createSubject(Long.parseLong(idAndRole[0]), idAndRole[1]), accessSecretKey, accessExpiration);
     }
 
     private void validateRefreshToken(String token) {
@@ -107,14 +107,14 @@ public class TokenProvider {
      * @param oldAccessToken 만료된 access token
      * @return subject를 반환
      */
-    private String decodeJwtPayload(String oldAccessToken) {
+    private String[] decodeJwtPayload(String oldAccessToken) {
         ObjectMapper objectMapper = new ObjectMapper();
 
         try {
             return objectMapper.readValue(
                 new String(Base64.getDecoder().decode(oldAccessToken.split("\\.")[1]), StandardCharsets.UTF_8),
                 Map.class
-            ).get("sub").toString();
+            ).get("sub").toString().split(SUBJECT_DELIMITER);
         } catch (JsonProcessingException e) {
             throw new IllegalStateException(e);
         }
