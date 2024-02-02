@@ -1,5 +1,6 @@
 package com.example.springsecurity.jwt;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,9 +34,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         Optional<String> tokenWithBearer = Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION));
 
         if (tokenWithBearer.isPresent()) {
-            String token = extractToken(tokenWithBearer.get());
-            Authentication authentication = getAuthentication(token);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            try {
+                String token = extractToken(tokenWithBearer.get());
+                Authentication authentication = getAuthentication(token);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            } catch (JwtException e) {
+                request.setAttribute("exception", e);
+                log.error("e :: ", e);
+            }
         }
 
         filterChain.doFilter(request, response);

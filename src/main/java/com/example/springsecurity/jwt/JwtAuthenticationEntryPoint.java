@@ -2,25 +2,51 @@ package com.example.springsecurity.jwt;
 
 import com.example.springsecurity.exception.ExceptionResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.ServletException;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.http.HttpStatus;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+import static org.springframework.http.HttpStatus.*;
+
+@Slf4j
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
+    public static final String EXPIRED_MESSAGE = "토큰이 만료되었습니다.";
+    public static final String SIGNATURE_MESSAGE = "토큰이 위조되었습니다.";
+    public static final String DEFAULT_AUTH_MESSAGE = "토큰이 존재하지 않거나 허가되지 않은 접근입니다.";
+
     @Override
-    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
+    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException {
+        String message = createExceptionMessage((Exception) request.getAttribute("exception"));
+        setUpResponse(response, message);
+    }
+
+    private String createExceptionMessage(Exception e) {
+        if (e instanceof ExpiredJwtException) {
+            return EXPIRED_MESSAGE;
+        }
+
+        if (e instanceof SignatureException) {
+            return SIGNATURE_MESSAGE;
+        }
+
+        return DEFAULT_AUTH_MESSAGE;
+    }
+
+    private void setUpResponse(HttpServletResponse response, String message) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
-        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+
+        response.setStatus(UNAUTHORIZED.value());
         response.setCharacterEncoding("utf-8");
         response.setContentType("application/json; charset=UTF-8");
-        response.getWriter().write(objectMapper.writeValueAsString(ExceptionResponse.of("로그인된 사용자가 아닙니다.")));
+        response.getWriter().write(objectMapper.writeValueAsString(ExceptionResponse.of(UNAUTHORIZED.value(), message)));
     }
 }
