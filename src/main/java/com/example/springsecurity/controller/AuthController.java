@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class AuthController {
 
+    public static final String[] TOKEN_TYPE = {"access", "refresh"};
+    public static final int COOKIE_MAX_AGE = 60 * 60 * 24;
     private final AuthService authService;
     private final TokenService tokenService;
 
@@ -27,7 +29,6 @@ public class AuthController {
     //  1. 로그아웃
     //  2. OAUTH를 활용한 소셜 로그인
     //  3. 테스트 작성
-    //  4. RTR기법 적용
 
     @PostMapping("/sign-up")
     public ResponseEntity<String> joinMember(@RequestBody SignUpRequest signUpRequest)  {
@@ -58,26 +59,35 @@ public class AuthController {
     @PostMapping("/logout")
     public void logout(
             @CookieValue(name = "refresh") String refreshToken,
-            @RequestHeader(name = HttpHeaders.AUTHORIZATION) String accessToken) {
-        // TODO
-        //  Access 토큰 블랙리스트 처리할 방법 찾기
+            @RequestHeader(name = HttpHeaders.AUTHORIZATION) String accessToken,
+            HttpServletResponse response) {
+
         tokenService.deleteRefreshToken(accessToken, refreshToken);
+        clearTokensFromCookie(response);
+    }
+
+    private void clearTokensFromCookie(HttpServletResponse response) {
+        ResponseCookie accessCookie = createCookie(TOKEN_TYPE[0], "", false, 0);
+        ResponseCookie refreshCookie = createCookie(TOKEN_TYPE[1], "", false, 0);
+
+        response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
     }
 
     private void setUpTokensToCookie(Tokens tokens, HttpServletResponse response) {
-        ResponseCookie accessTokenCookie = createCookie("access", tokens.getAccessToken(), false);
-        ResponseCookie refreshTokenCookie = createCookie("refresh", tokens.getRefreshToken(), true);
+        ResponseCookie accessTokenCookie = createCookie(TOKEN_TYPE[0], tokens.getAccessToken(), false, COOKIE_MAX_AGE);
+        ResponseCookie refreshTokenCookie = createCookie(TOKEN_TYPE[1], tokens.getRefreshToken(), true, COOKIE_MAX_AGE);
 
         response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
         response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
     }
 
-    private ResponseCookie createCookie(String tokenType, String token, boolean isHttpOnly) {
+    private ResponseCookie createCookie(String tokenType, String token, boolean isHttpOnly, long maxAge) {
         return ResponseCookie.from(tokenType, token)
             .httpOnly(isHttpOnly)
             .secure(true)
             .path("/")
-            .maxAge(60 * 60 * 24)
+            .maxAge(maxAge)
             .sameSite("None")
             .build();
     }

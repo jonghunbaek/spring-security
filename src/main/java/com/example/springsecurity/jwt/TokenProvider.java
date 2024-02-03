@@ -71,17 +71,23 @@ public class TokenProvider {
             .split(SUBJECT_DELIMITER);
     }
 
-    public String reissueAccessToken(String accessToken, String refreshToken) {
-        validateRefreshToken(refreshToken);
-
+    public String reissueAccessToken(String accessToken) {
         String[] idAndRole = decodeJwtPayload(accessToken);
         return createToken(createSubject(Long.parseLong(idAndRole[0]), idAndRole[1]), accessSecretKey, accessExpiration);
     }
 
-    private void validateRefreshToken(String token) {
+    public void validateRefreshToken(String token) {
         JwtParser jwtParser = createJwtParser(refreshSecretKey);
 
         parseToken(token, jwtParser);
+    }
+
+    public Date getExpiration(String accessToken) {
+        JwtParser jwtParser = createJwtParser(accessSecretKey);
+
+        return jwtParser.parseSignedClaims(accessToken)
+                .getPayload()
+                .getExpiration();
     }
 
     private JwtParser createJwtParser(SecretKey secretKey) {

@@ -9,6 +9,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.util.Date;
+
 @RequiredArgsConstructor
 @Service
 public class TokenService {
@@ -41,21 +44,21 @@ public class TokenService {
 
     /**
      * Access Token, Refresh Token 재발행
-     * Refresh Token은 jjwt라이브러리를 이용한 만료시간, 변조 여부 1차검증 후
+     * Refresh Token은 jjwt라이브러리를 이용해 파싱하면서 만료시간, 변조 여부 1차검증 후
      * DB에 저장된 Refresh Token과 비교해 2차 검증을 한다.
      * @return 새로운 access token과 기존 refresh token
      */
     @Transactional
     public Tokens reissueTokens(String accessTokens, String refreshToken) {
-        String newAccessToken = tokenProvider.reissueAccessToken(accessTokens, refreshToken);
+        String newAccessToken = tokenProvider.reissueAccessToken(accessTokens);
         String newRefreshToken = reissueRefreshToken(refreshToken);
 
         return Tokens.of(newAccessToken, newRefreshToken);
     }
 
     private String reissueRefreshToken(String refreshToken) {
-        RefreshToken findRefreshToken = refreshTokenRepository.findByToken(refreshToken)
-            .orElseThrow(() -> new IllegalArgumentException("해당 리프레쉬 토큰이 존재하지 않습니다."));
+        tokenProvider.validateRefreshToken(refreshToken);
+        RefreshToken findRefreshToken = findRefreshToken(refreshToken, "해당 리프레쉬 토큰이 존재하지 않습니다.");
 
         String newRefreshToken = tokenProvider.createRefreshToken();
         findRefreshToken.updateNewToken(newRefreshToken);
@@ -63,8 +66,20 @@ public class TokenService {
     }
 
     public void deleteRefreshToken(String accessToken, String refreshToken) {
-        // TODO :: 리프레쉬 토큰이 변조된 경우 예외조차 터지지 않으므로 실제로 삭제가 이뤄지지 않음.
-        //  액세스 토큰에서 memberId를 가져와 id로 리프레쉬 토큰을 가져오고 요청으로 받은 리프레쉬 토큰과 비교 또는 리프레시 토큰 검증
-        refreshTokenRepository.deleteByToken(refreshToken);
+        // TODO
+        //  액세스 토큰 레디스 활용해 블랙리스트 처리, 만료시간 가져오기
+        //  리프레쉬 토큰이 db에 저장된 것과 다르면 리프레쉬 토큰이 변조 된 것으로 가정해야 하나?
+        Date expiration = tokenProvider.getExpiration(accessToken);
+
+        // expiration만큼 redis에서 액세스 토큰 블랙리스트 처리
+
+        tokenProvider.validateRefreshToken(refreshToken);
+        RefreshToken findRefreshToken = findRefreshToken(refreshToken,"해당 리프레쉬 토큰이 존재하지 않아 로그아웃을 완료할 수 없습니다.");
+        refreshTokenRepository.deleteByToken(findRefreshToken.getToken());
+    }
+
+    private RefreshToken findRefreshToken(String refreshToken, String message) {
+        return refreshTokenRepository.findByToken(refreshToken)
+                .orElseThrow(() -> new IllegalArgumentException(message));
     }
 }
