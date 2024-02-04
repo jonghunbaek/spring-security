@@ -58,11 +58,10 @@ public class AuthController {
     
     @PostMapping("/logout")
     public void logout(
-            @CookieValue(name = "refresh") String refreshToken,
             @RequestHeader(name = HttpHeaders.AUTHORIZATION) String accessToken,
             HttpServletResponse response) {
 
-        tokenService.deleteRefreshToken(accessToken, refreshToken);
+        tokenService.logoutTokens(accessToken);
         clearTokensFromCookie(response);
     }
 

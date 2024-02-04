@@ -3,7 +3,6 @@ spring:
     url: jdbc:h2:mem:test
     username: sa
     password:
-
   jpa:
     show-sql: true
     hibernate:
@@ -11,6 +10,10 @@ spring:
   h2:
     console:
       enabled: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
 logging:
     level:
@@ -18,7 +21,7 @@ logging:
 
 access-secret-key: NiOeyFbN1Gqo10bPgUyTFsRMkJpGLXSvGP04eFqj5B30r5TcrtlSXfQ7TndvYjNvfkEKLqILn0j1SmKODO1Yw3JpBBgI3nVPEahqxeY8qbPSFGyzyEVxnl4AQcrnVneI
 refresh-secret-key: NiOeyFbN1Gqo10bPgUyTFsRMkJpGLXSvGP04eFqj5B30r5TcrtlSXfQ7TndvYjNvfkEKLqILn0j1SmKODO1Yw3JpBBgI3nVPEahqxeY8qbPSFGyzyEVxnl4AQcrnVneI
-access-expiration-hours: 10
+access-expiration-hours: 30
 refresh-expiration-hours: 86400
 
 issuer: jonghun
