@@ -1,22 +1,28 @@
 package com.example.springsecurity.service;
 
 import com.example.springsecurity.dto.Tokens;
+import com.example.springsecurity.entity.BlackToken;
 import com.example.springsecurity.entity.RefreshToken;
 import com.example.springsecurity.jwt.TokenProvider;
+import com.example.springsecurity.repository.BlackTokenRepository;
 import com.example.springsecurity.repository.RefreshTokenRepository;
 import com.example.springsecurity.service.dto.TokenInfo;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class TokenService {
 
     private final RefreshTokenRepository refreshTokenRepository;
+    private final BlackTokenRepository blackTokenRepository;
     private final TokenProvider tokenProvider;
 
     /**
@@ -58,28 +64,29 @@ public class TokenService {
 
     private String reissueRefreshToken(String refreshToken) {
         tokenProvider.validateRefreshToken(refreshToken);
-        RefreshToken findRefreshToken = findRefreshToken(refreshToken, "해당 리프레쉬 토큰이 존재하지 않습니다.");
+        RefreshToken findRefreshToken = findRefreshToken(refreshToken);
 
         String newRefreshToken = tokenProvider.createRefreshToken();
         findRefreshToken.updateNewToken(newRefreshToken);
         return newRefreshToken;
     }
 
-    public void deleteRefreshToken(String accessToken, String refreshToken) {
-        // TODO
-        //  액세스 토큰 레디스 활용해 블랙리스트 처리, 만료시간 가져오기
-        //  리프레쉬 토큰이 db에 저장된 것과 다르면 리프레쉬 토큰이 변조 된 것으로 가정해야 하나?
-        Date expiration = tokenProvider.getExpiration(accessToken);
+    public void logoutTokens(String accessToken) {
+        Date expirationDate = tokenProvider.getExpiration(accessToken);
+        log.info("expirationDate :: {}", expirationDate);
 
-        // expiration만큼 redis에서 액세스 토큰 블랙리스트 처리
+        long expirationSeconds = Duration.between(Instant.now(), expirationDate.toInstant())
+                .getSeconds();
+        log.info("expirationSeconds :: {}", expirationSeconds);
 
-        tokenProvider.validateRefreshToken(refreshToken);
-        RefreshToken findRefreshToken = findRefreshToken(refreshToken,"해당 리프레쉬 토큰이 존재하지 않아 로그아웃을 완료할 수 없습니다.");
-        refreshTokenRepository.deleteByToken(findRefreshToken.getToken());
+        blackTokenRepository.save(new BlackToken(accessToken, expirationSeconds));
+
+        String[] idAndRole = tokenProvider.parseAccessToken(accessToken);
+        refreshTokenRepository.deleteById(Long.parseLong(idAndRole[0]));
     }
 
-    private RefreshToken findRefreshToken(String refreshToken, String message) {
+    private RefreshToken findRefreshToken(String refreshToken) {
         return refreshTokenRepository.findByToken(refreshToken)
-                .orElseThrow(() -> new IllegalArgumentException(message));
+                .orElseThrow(() -> new IllegalArgumentException("해당 리프레쉬 토큰이 존재하지 않습니다."));
     }
 }
