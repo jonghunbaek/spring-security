@@ -1,5 +1,6 @@
 package com.example.springsecurity.jwt;
 
+import com.example.springsecurity.repository.BlackTokenRepository;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -13,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -25,33 +27,37 @@ import java.util.Optional;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     public static final String AUTH_TYPE = "Bearer ";
-
+    public static final String EXCEPTION_KEY = "exception";
 
     private final TokenProvider tokenProvider;
+    private final BlackTokenRepository blackTokenRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        Optional<String> tokenWithBearer = Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION));
+        String tokenWithBearer = request.getHeader(HttpHeaders.AUTHORIZATION);
+        String token = extractToken(tokenWithBearer);
 
-        if (tokenWithBearer.isPresent()) {
-            try {
-                String token = extractToken(tokenWithBearer.get());
-                Authentication authentication = getAuthentication(token);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            } catch (JwtException e) {
-                request.setAttribute("exception", e);
-                log.error("e :: ", e);
-            }
+        // 블랙 토큰인 지 검증하는 로직 추가
+
+        try {
+            Authentication authentication = getAuthentication(token);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+        } catch (JwtException e) {
+            request.setAttribute(EXCEPTION_KEY, e);
+            log.error("e :: ", e);
         }
 
         filterChain.doFilter(request, response);
     }
 
     private String extractToken(String tokenWithBearer) {
-        String authType = tokenWithBearer.substring(0, AUTH_TYPE.length());
-        validateAuthType(authType);
+        if (StringUtils.hasText(tokenWithBearer)) {
+            String authType = tokenWithBearer.substring(0, AUTH_TYPE.length());
+            validateAuthType(authType);
+            return tokenWithBearer.substring(AUTH_TYPE.length());
+        }
 
-        return tokenWithBearer.substring(AUTH_TYPE.length());
+        throw new IllegalArgumentException("토큰 값이 존재하지 않습니다.");
     }
 
     private void validateAuthType(String authType) {

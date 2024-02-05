@@ -57,11 +57,8 @@ public class AuthController {
     }
     
     @PostMapping("/logout")
-    public void logout(
-            @RequestHeader(name = HttpHeaders.AUTHORIZATION) String accessToken,
-            HttpServletResponse response) {
-
-        tokenService.logoutTokens(accessToken);
+    public void logout(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String accessToken, HttpServletResponse response) {
+        tokenService.blockTokens(accessToken);
         clearTokensFromCookie(response);
     }
 

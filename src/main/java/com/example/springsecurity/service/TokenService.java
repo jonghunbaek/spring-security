@@ -71,13 +71,13 @@ public class TokenService {
         return newRefreshToken;
     }
 
-    public void logoutTokens(String accessToken) {
-        Date expirationDate = tokenProvider.getExpiration(accessToken);
-        log.info("expirationDate :: {}", expirationDate);
+    private RefreshToken findRefreshToken(String refreshToken) {
+        return refreshTokenRepository.findByToken(refreshToken)
+            .orElseThrow(() -> new IllegalArgumentException("해당 리프레쉬 토큰이 존재하지 않습니다."));
+    }
 
-        long expirationSeconds = Duration.between(Instant.now(), expirationDate.toInstant())
-                .getSeconds();
-        log.info("expirationSeconds :: {}", expirationSeconds);
+    public void blockTokens(String accessToken) {
+        long expirationSeconds = calculateExpiration(accessToken);
 
         blackTokenRepository.save(new BlackToken(accessToken, expirationSeconds));
 
@@ -85,8 +85,10 @@ public class TokenService {
         refreshTokenRepository.deleteById(Long.parseLong(idAndRole[0]));
     }
 
-    private RefreshToken findRefreshToken(String refreshToken) {
-        return refreshTokenRepository.findByToken(refreshToken)
-                .orElseThrow(() -> new IllegalArgumentException("해당 리프레쉬 토큰이 존재하지 않습니다."));
+    private long calculateExpiration(String accessToken) {
+        Date expirationDate = tokenProvider.getExpiration(accessToken);
+
+        return Duration.between(Instant.now(), expirationDate.toInstant())
+                .getSeconds();
     }
 }

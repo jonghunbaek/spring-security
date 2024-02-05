@@ -1,12 +1,13 @@
 package com.example.springsecurity.service;
 
+import com.example.springsecurity.entity.BlackToken;
 import com.example.springsecurity.entity.Member;
-import com.example.springsecurity.entity.Role;
+import com.example.springsecurity.entity.RefreshToken;
 import com.example.springsecurity.jwt.TokenProvider;
 import com.example.springsecurity.repository.BlackTokenRepository;
 import com.example.springsecurity.repository.MemberRepository;
+import com.example.springsecurity.repository.RefreshTokenRepository;
 import com.example.springsecurity.service.dto.TokenInfo;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,11 +26,13 @@ class TokenServiceTest {
     @Autowired
     MemberRepository memberRepository;
     @Autowired
+    RefreshTokenRepository refreshTokenRepository;
+    @Autowired
     BlackTokenRepository blackTokenRepository;
 
-    @DisplayName("Redis에 저장된 black token이 만료 시간 후에 삭제가 되었는 지 확인한다.")
+    @DisplayName("리프레쉬 토큰이 DB에서 삭제되고, 액세스 토큰이 레디스에 black 토큰으로 저장되는 지 확인한다.")
     @Test
-    void checkBlackTokenExpiration() throws InterruptedException {
+    void blockTokensTest() {
         // given
         Member saveMember = memberRepository.save(Member.builder()
                 .email("test@gmail.com")
@@ -39,14 +42,21 @@ class TokenServiceTest {
                 .build());
 
         String accessToken = tokenProvider.createAccessToken(TokenInfo.of(saveMember));
+        String refreshToken = tokenProvider.createRefreshToken();
+
+        refreshTokenRepository.save(new RefreshToken(saveMember.getId(), refreshToken));
 
         // when
-        tokenService.logoutTokens(accessToken);
-//        Thread.sleep(10000);
+        tokenService.blockTokens(accessToken);
 
         // then
-        assertThatThrownBy(() -> blackTokenRepository.findById(accessToken)
-                        .orElseThrow(() -> new IllegalArgumentException("해당 블랙 토큰은 존재하지 않습니다.")))
-                .isInstanceOf(IllegalArgumentException.class);
+        BlackToken blackToken = blackTokenRepository.findById(accessToken)
+            .orElseThrow(() -> new IllegalArgumentException("해당 블랙 토큰은 존재하지 않습니다."));
+
+        assertThat(blackToken.getToken()).isEqualTo(accessToken);
+
+        assertThatThrownBy(() -> refreshTokenRepository.findById(saveMember.getId())
+            .orElseThrow(() -> new IllegalArgumentException("리프레쉬 토큰이 존재하지 않습니다.")))
+            .isInstanceOf(IllegalArgumentException.class);
     }
 }
