@@ -35,14 +35,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String tokenWithBearer = request.getHeader(HttpHeaders.AUTHORIZATION);
-        String token = extractToken(tokenWithBearer);
-
-        // 블랙 토큰인 지 검증하는 로직 추가
 
         try {
-            Authentication authentication = getAuthentication(token);
+            String accessToken = extractToken(tokenWithBearer);
+
+            validateBlackToken(accessToken);
+
+            Authentication authentication = getAuthentication(accessToken);
             SecurityContextHolder.getContext().setAuthentication(authentication);
-        } catch (JwtException e) {
+        } catch (JwtException | IllegalArgumentException | IllegalStateException e) {
             request.setAttribute(EXCEPTION_KEY, e);
             log.error("e :: ", e);
         }
@@ -51,13 +52,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private String extractToken(String tokenWithBearer) {
-        if (StringUtils.hasText(tokenWithBearer)) {
-            String authType = tokenWithBearer.substring(0, AUTH_TYPE.length());
-            validateAuthType(authType);
-            return tokenWithBearer.substring(AUTH_TYPE.length());
-        }
+        validateNone(tokenWithBearer);
+        String authType = tokenWithBearer.substring(0, AUTH_TYPE.length());
 
-        throw new IllegalArgumentException("토큰 값이 존재하지 않습니다.");
+        validateAuthType(authType);
+        return tokenWithBearer.substring(AUTH_TYPE.length());
+    }
+
+    private void validateNone(String tokenWithBearer) {
+        if (!StringUtils.hasText(tokenWithBearer)) {
+            throw new IllegalArgumentException("토큰 값이 존재하지 않습니다.");
+        }
     }
 
     private void validateAuthType(String authType) {
@@ -66,8 +71,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
     }
 
-    private Authentication getAuthentication(String token) {
-        String[] idAndRole = tokenProvider.parseAccessToken(token);
+    private void validateBlackToken(String accessToken) {
+        if (blackTokenRepository.findById(accessToken).isPresent()) {
+            throw new IllegalStateException("해당 토큰은 로그아웃 처리 된 토큰 입니다.");
+        }
+    }
+
+    private Authentication getAuthentication(String accessToken) {
+        String[] idAndRole = tokenProvider.parseAccessToken(accessToken);
 
         return new UsernamePasswordAuthenticationToken(
             idAndRole[0],

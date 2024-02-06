@@ -22,6 +22,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     public static final String EXPIRED_MESSAGE = "토큰이 만료되었습니다.";
     public static final String SIGNATURE_MESSAGE = "토큰이 위조되었습니다.";
     public static final String DEFAULT_AUTH_MESSAGE = "토큰이 존재하지 않거나 허가되지 않은 접근입니다.";
+    public static final String BLACK_MESSAGE = "해당 토큰은 블랙 리스트 처리된 토큰입니다.";
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException {
@@ -36,6 +37,10 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
         if (e instanceof SignatureException) {
             return SIGNATURE_MESSAGE;
+        }
+
+        if (e instanceof IllegalStateException) {
+            return BLACK_MESSAGE;
         }
 
         return DEFAULT_AUTH_MESSAGE;

@@ -77,18 +77,18 @@ public class TokenService {
     }
 
     public void blockTokens(String accessToken) {
-        long expirationSeconds = calculateExpiration(accessToken);
+        long remainingSeconds = calculateRemaining(accessToken);
 
-        blackTokenRepository.save(new BlackToken(accessToken, expirationSeconds));
+        blackTokenRepository.save(new BlackToken(accessToken, remainingSeconds));
 
         String[] idAndRole = tokenProvider.parseAccessToken(accessToken);
         refreshTokenRepository.deleteById(Long.parseLong(idAndRole[0]));
     }
 
-    private long calculateExpiration(String accessToken) {
-        Date expirationDate = tokenProvider.getExpiration(accessToken);
+    private long calculateRemaining(String accessToken) {
+        Date expiration = tokenProvider.getExpiration(accessToken);
 
-        return Duration.between(Instant.now(), expirationDate.toInstant())
+        return Duration.between(Instant.now(), expiration.toInstant())
                 .getSeconds();
     }
 }
