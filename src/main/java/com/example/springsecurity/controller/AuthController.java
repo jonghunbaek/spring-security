@@ -6,12 +6,10 @@ import com.example.springsecurity.dto.SignUpRequest;
 import com.example.springsecurity.service.AuthService;
 import com.example.springsecurity.service.TokenService;
 import com.example.springsecurity.service.dto.TokenInfo;
-import com.example.springsecurity.util.CookieManager;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
