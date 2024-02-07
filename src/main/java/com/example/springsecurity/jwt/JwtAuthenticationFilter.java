@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -19,6 +20,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -33,8 +35,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String tokenWithBearer = request.getHeader(HttpHeaders.AUTHORIZATION);
+        Optional<String> tokenWithBearer = Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION));
 
+        tokenWithBearer.ifPresent(token -> authenticate(request, token));
+
+        filterChain.doFilter(request, response);
+    }
+
+    private void authenticate(HttpServletRequest request, String tokenWithBearer) {
         try {
             String accessToken = extractToken(tokenWithBearer);
 
@@ -46,8 +54,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             request.setAttribute(EXCEPTION_KEY, e);
             log.error("e :: ", e);
         }
-
-        filterChain.doFilter(request, response);
     }
 
     private String extractToken(String tokenWithBearer) {
