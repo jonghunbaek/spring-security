@@ -1,5 +1,6 @@
 package com.example.springsecurity.jwt;
 
+import com.example.springsecurity.config.SecurityConfig;
 import com.example.springsecurity.repository.BlackTokenRepository;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -19,6 +20,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -34,9 +36,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final BlackTokenRepository blackTokenRepository;
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String[] permitList = SecurityConfig.PERMIT_LIST;
+
+        return request.getRequestURI().startsWith("/security");
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         Optional<String> tokenWithBearer = Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION));
-
+        log.info("회원 가입에 들어오냐");
         tokenWithBearer.ifPresent(token -> authenticate(request, token));
 
         filterChain.doFilter(request, response);
