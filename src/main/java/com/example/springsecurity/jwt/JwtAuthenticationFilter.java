@@ -37,6 +37,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
+        // TODO :: 리스트 값 수정 필요
         String[] permitList = SecurityConfig.PERMIT_LIST;
 
         return request.getRequestURI().startsWith("/security");
@@ -45,7 +46,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         Optional<String> tokenWithBearer = Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION));
-        log.info("회원 가입에 들어오냐");
         tokenWithBearer.ifPresent(token -> authenticate(request, token));
 
         filterChain.doFilter(request, response);
