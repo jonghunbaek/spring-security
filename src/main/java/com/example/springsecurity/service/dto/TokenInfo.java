@@ -9,20 +9,17 @@ import lombok.Getter;
 public class TokenInfo {
 
     private Long memberId;
-    private String email;
     private Role role;
 
     @Builder
-    private TokenInfo(Long memberId, String email, Role role) {
+    private TokenInfo(Long memberId, Role role) {
         this.memberId = memberId;
-        this.email = email;
         this.role = role;
     }
 
     public static TokenInfo of(Member member) {
         return TokenInfo.builder()
             .memberId(member.getId())
-            .email(member.getEmail())
             .role(member.getRole())
             .build();
     }
