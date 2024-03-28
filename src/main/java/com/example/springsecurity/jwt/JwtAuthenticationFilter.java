@@ -38,7 +38,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         // TODO :: 리스트 값 수정 필요
-        String[] permitList = SecurityConfig.PERMIT_LIST;
+//        String[] permitList = SecurityConfig.PERMIT_LIST;
 
         return request.getRequestURI().startsWith("/security");
     }

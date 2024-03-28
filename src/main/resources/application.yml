@@ -15,17 +15,22 @@ spring:
       host: localhost
       port: 6379
 
+  thymeleaf:
+    cache: false
+    check-template-location: true
+#    prefix: classpath:templates/
+    suffix: .html
+
   security:
     oauth2:
       client:
         registration:
           kakao:
             authorization-grant-type: authorization_code
-            client-id: 444444444444444479e933556a21e8
-            client-secret: QQQQQQQQQQQQQQQQuOfOLzjZMc5q1U
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            client-id: ${REST_API_ID}
+            client-secret: ${REST_API_SECRET}
+            redirect-uri: http://localhost:8080/oauth/kakao/callback
             scope:
-              - profile
               - account_email
             client-authentication-method: client_secret_post
             client-name: Kakao
